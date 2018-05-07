@@ -17,7 +17,8 @@ class RegexTextFinder implements TextFinderInterface
         $texts = [];
         foreach ($this->patterns as $pattern => $textPosition) {
             preg_match_all($pattern, $content, $matches);
-            for ($i = 0; $i < count($matches[0]); ++$i) {
+            $matchesCount = count($matches[0]);
+            for ($i = 0; $i < $matchesCount; ++$i) {
                 $text = trim($matches[$textPosition][$i]);
                 if ($text === '') {
                     continue;
