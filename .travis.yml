@@ -1,0 +1,22 @@
+language: php
+
+php:
+    - 7.1
+    - 7.2
+
+sudo: false
+
+before_script:
+    - composer update ${COMPOSER_FLAGS} --no-interaction
+
+script:
+    - mkdir -p build/logs
+    - composer outdated -D --strict
+    - composer require phpstan/phpstan --dev
+    - vendor/bin/phpstan analyze src tests --level=max
+    - vendor/bin/phpcs src --standard=PSR2 -n
+    - vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover
+
+after_script:
+    - wget https://scrutinizer-ci.com/ocular.phar
+    - php ocular.phar code-coverage:upload --format=php-clover coverage.clover;

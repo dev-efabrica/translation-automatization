@@ -1,0 +1,14 @@
+{block content}
+
+<h1>First template</h1>
+<p>This is the first latte template</p>
+<a href="#" title="Link title">Link content</a>
+<img src="image.jpg" alt="image alt">
+{if $foo}Foo{else}Bar{/if}
+<select name="my_select">
+    <option value="1"{if $mySelect == 1} selected{/if}>One</option>
+    <option value="2"{if $mySelect == 2} selected{/if}>Two</option>
+    <option value="3"{if $mySelect == 3} selected{/if}>Three</option>
+    <option value="4"{if $mySelect == 4} selected{/if}>Four</option>
+    <option value="5"{if $mySelect == 5} selected{/if}>Five</option>
+</select>
