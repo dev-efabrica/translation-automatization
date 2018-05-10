@@ -15,8 +15,11 @@ script:
     - composer require phpstan/phpstan --dev
     - vendor/bin/phpstan analyze src tests --level=max
     - vendor/bin/phpcs src --standard=PSR2 -n
-    - vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover
+    - vendor/bin/phpunit --coverage-text
 
-after_script:
+after_success:
     - wget https://scrutinizer-ci.com/ocular.phar
-    - php ocular.phar code-coverage:upload --format=php-clover coverage.clover;
+    - php ocular.phar code-coverage:upload --format=php-clover build/logs/clover.xml
+    - wget https://github.com/php-coveralls/php-coveralls/releases/download/v2.0.0/php-coveralls.phar
+    - chmod +x php-coveralls.phar
+    - travis_retry php php-coveralls.phar -x build/logs/clover.xml
