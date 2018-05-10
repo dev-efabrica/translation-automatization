@@ -22,4 +22,4 @@ after_success:
     - php ocular.phar code-coverage:upload --format=php-clover coverage.clover
     - wget https://github.com/php-coveralls/php-coveralls/releases/download/v2.0.0/php-coveralls.phar
     - chmod +x php-coveralls.phar
-    - travis_retry php-coveralls.phar
+    - travis_retry php php-coveralls.phar
