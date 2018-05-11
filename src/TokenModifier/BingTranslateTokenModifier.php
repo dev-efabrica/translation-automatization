@@ -3,18 +3,15 @@
 namespace Efabrica\TranslationsAutomatization\TokenModifier;
 
 use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
-use GuzzleHttp\Client;
+use Efabrica\TranslationsAutomatization\Translator\BingTranslator;
 
 class BingTranslateTokenModifier implements TokenModifierInterface
 {
-    private $from;
-
-    private $to;
+    private $translator;
 
     public function __construct(string $from, string $to)
     {
-        $this->from = $from;
-        $this->to = $to;
+        $this->translator = new BingTranslator($from, $to);
     }
 
     public function modifyAll(TokenCollection $tokenCollection): TokenCollection
@@ -28,23 +25,7 @@ class BingTranslateTokenModifier implements TokenModifierInterface
             return $tokenCollection;
         }
 
-        $guzzleClient = new Client();
-        $options = [
-            'form_params' => [
-                'text' => implode(' | ', $oldKeys),
-                'from' => $this->from,
-                'to' => $this->to,
-            ]
-        ];
-        $request = $guzzleClient->request('POST', 'https://www.bing.com/ttranslate', $options);
-
-        $newKeys = [];
-        $response = json_decode((string) $request->getBody(), true);
-        if ($response['statusCode'] === 200) {
-            $newKeys = explode(' | ', $response['translationResponse']);
-        }
-        $oldToNewKeys = array_combine($oldKeys, $newKeys);
-
+        $oldToNewKeys = $this->translator->translate($oldKeys);
         foreach ($tokenCollection->getTokens() as $token) {
             if (isset($oldToNewKeys[$token->getTranslationKey()])) {
                 $token->changeTranslationKey($oldToNewKeys[$token->getTranslationKey()]);
