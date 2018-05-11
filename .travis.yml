@@ -11,10 +11,11 @@ before_script:
 
 script:
     - mkdir -p build/logs
+    - mkdir temp
     - composer outdated -D --strict
     - composer require phpstan/phpstan --dev
     - vendor/bin/phpstan analyze src tests --level=max
-    - vendor/bin/phpcs src --standard=PSR2 -n
+    - vendor/bin/phpcs src tests --standard=PSR2 -n
     - vendor/bin/phpunit --coverage-text
 
 after_success:

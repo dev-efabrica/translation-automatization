@@ -2,13 +2,12 @@
 
 namespace Efabrica\TranslationsAutomatization\Tests\Tokenizer;
 
-use Efabrica\TranslationsAutomatization\Bridge\Latte\TokenModifier\LowercaseUnderscoredTokenModifier;
 use Efabrica\TranslationsAutomatization\FileFinder\FileFinder;
 use Efabrica\TranslationsAutomatization\TextFinder\RegexTextFinder;
 use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
 use Efabrica\TranslationsAutomatization\Tokenizer\Tokenizer;
-use Efabrica\TranslationsAutomatization\TokenModifier\CompositeTokenModifier;
 use Efabrica\TranslationsAutomatization\TokenModifier\FalsePositiveRemoverTokenModifier;
+use Efabrica\TranslationsAutomatization\TokenModifier\LowercaseUnderscoredTokenModifier;
 use PHPUnit\Framework\TestCase;
 
 class TokenizerTest extends TestCase
@@ -22,8 +21,8 @@ class TokenizerTest extends TestCase
         $textFinder->addPattern('/ title=\"([\p{L}\s\.\,\!\?\/\_\-]+)\"/siu');
         $textFinder->addPattern('/ alt=\"([\p{L}\s\.\,\!\?\/\_\-]+)\"/siu');
 
-        $tokenModifier = new LowercaseUnderscoredTokenModifier();
-        $tokenizer = new Tokenizer($fileFinder, $textFinder, $tokenModifier);
+        $tokenizer = new Tokenizer($fileFinder, $textFinder);
+        $tokenizer->addTokenModifier(new LowercaseUnderscoredTokenModifier());
         $tokenCollections = $tokenizer->tokenize();
         $this->assertNotEmpty($tokenCollections);
         $this->assertCount(1, $tokenCollections);
@@ -42,10 +41,9 @@ class TokenizerTest extends TestCase
         $textFinder->addPattern('/ title=\"([\p{L}\s\.\,\!\?\/\_\-]+)\"/siu');
         $textFinder->addPattern('/ alt=\"([\p{L}\s\.\,\!\?\/\_\-]+)\"/siu');
 
-        $tokenModifier = new CompositeTokenModifier();
-        $tokenModifier->addTokenModifier(new LowercaseUnderscoredTokenModifier());
-        $tokenModifier->addTokenModifier((new FalsePositiveRemoverTokenModifier())->addFalsePositivePattern('/} selected{/', '/selected/'));
-        $tokenizer = new Tokenizer($fileFinder, $textFinder, $tokenModifier);
+        $tokenizer = new Tokenizer($fileFinder, $textFinder);
+        $tokenizer->addTokenModifier(new LowercaseUnderscoredTokenModifier());
+        $tokenizer->addTokenModifier((new FalsePositiveRemoverTokenModifier())->addFalsePositivePattern('/} selected{/', '/selected/'));
         $tokenCollections = $tokenizer->tokenize();
         $this->assertNotEmpty($tokenCollections);
         $this->assertCount(1, $tokenCollections);
@@ -61,8 +59,8 @@ class TokenizerTest extends TestCase
         $textFinder = new RegexTextFinder();
         $textFinder->addPattern('/ title=\"([\p{L}\s\.\,\!\?\/\_\-]+)\"/siu');
 
-        $tokenModifier = new LowercaseUnderscoredTokenModifier();
-        $tokenizer = new Tokenizer($fileFinder, $textFinder, $tokenModifier);
+        $tokenizer = new Tokenizer($fileFinder, $textFinder);
+        $tokenizer->addTokenModifier(new LowercaseUnderscoredTokenModifier());
         $tokenCollections = $tokenizer->tokenize();
         $this->assertNotEmpty($tokenCollections);
         $this->assertCount(1, $tokenCollections);

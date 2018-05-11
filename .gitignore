@@ -1,3 +1,5 @@
-/coverage
-/vendor
+/build/
+/coverage/
+/vendor/
 /composer.lock
+/temp/
