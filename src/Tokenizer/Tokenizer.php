@@ -4,6 +4,7 @@ namespace Efabrica\TranslationsAutomatization\Tokenizer;
 
 use Efabrica\TranslationsAutomatization\FileFinder\FileFinderInterface;
 use Efabrica\TranslationsAutomatization\TextFinder\TextFinderInterface;
+use Efabrica\TranslationsAutomatization\TokenModifier\CompositeTokenModifier;
 use Efabrica\TranslationsAutomatization\TokenModifier\TokenModifierInterface;
 
 class Tokenizer
@@ -16,12 +17,17 @@ class Tokenizer
 
     public function __construct(
         FileFinderInterface $fileFinder,
-        TextFinderInterface $textFinder,
-        TokenModifierInterface $tokenModifier
+        TextFinderInterface $textFinder
     ) {
         $this->fileFinder = $fileFinder;
         $this->textFinder = $textFinder;
-        $this->tokenModifier = $tokenModifier;
+        $this->tokenModifier = new CompositeTokenModifier();
+    }
+
+    public function addTokenModifier(TokenModifierInterface $tokenModifier)
+    {
+        $this->tokenModifier->addTokenModifier($tokenModifier);
+        return $this;
     }
 
     /**

@@ -22,8 +22,9 @@ class TranslationFinder
         return $this;
     }
 
-    public function translate()
+    public function translate(): int
     {
+        $tokensReplaced = 0;
         foreach ($this->tokenizers as $tokenizer) {
             foreach ($tokenizer->tokenize() as $tokenCollection) {
                 // tento kod by som mohol dat do nejakeho file updatera
@@ -31,6 +32,7 @@ class TranslationFinder
                 $newTexts = [];
                 foreach ($tokenCollection->getTokens() as $token) {
                     $newTexts[$token->getOriginalBlock()] = str_replace($token->getOriginalText(), $token->getTranslationCode(), $token->getOriginalBlock());
+                    $tokensReplaced++;
                 }
                 $content = str_replace(array_keys($newTexts), array_values($newTexts), $content);
                 file_put_contents($tokenCollection->getFilePath(), $content);
@@ -38,5 +40,6 @@ class TranslationFinder
                 $this->saver->save($tokenCollection);
             }
         }
+        return $tokensReplaced;
     }
 }
