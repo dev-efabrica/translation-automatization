@@ -27,11 +27,8 @@ class BingTranslateTokenModifier implements TokenModifierInterface
 
         $oldToNewKeys = $this->translator->translate($oldKeys);
         foreach ($tokenCollection->getTokens() as $token) {
-            if (isset($oldToNewKeys[$token->getTranslationKey()])) {
-                $token->changeTranslationKey($oldToNewKeys[$token->getTranslationKey()]);
-            }
+            $token->changeTranslationKey($oldToNewKeys[$token->getTranslationKey()] ?? $token->getTranslationKey());
         }
-
         return $tokenCollection;
     }
 }
