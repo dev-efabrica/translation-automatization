@@ -1,6 +1,6 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization\Bridge\Latte\TokenModifier;
+namespace Efabrica\TranslationsAutomatization\TokenModifier;
 
 use Efabrica\TranslationsAutomatization\Tokenizer\Token;
 use Efabrica\TranslationsAutomatization\TokenModifier\TokenModifier;

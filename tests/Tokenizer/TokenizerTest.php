@@ -2,7 +2,7 @@
 
 namespace Efabrica\TranslationsAutomatization\Tests\Tokenizer;
 
-use Efabrica\TranslationsAutomatization\Bridge\Latte\TokenModifier\LowercaseUnderscoredTokenModifier;
+use Efabrica\TranslationsAutomatization\TokenModifier\LowercaseUnderscoredTokenModifier;
 use Efabrica\TranslationsAutomatization\FileFinder\FileFinder;
 use Efabrica\TranslationsAutomatization\TextFinder\RegexTextFinder;
 use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
