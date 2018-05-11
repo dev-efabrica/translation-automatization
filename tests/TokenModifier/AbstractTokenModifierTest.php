@@ -8,13 +8,12 @@ use PHPUnit\Framework\TestCase;
 
 abstract class AbstractTokenModifierTest extends TestCase
 {
+    /** @var TokenCollection */
     protected $tokenCollection;
 
     public function setUp()
     {
-        $this->tokenCollection = (new TokenCollection('/absolute/path/to/file.latte'))
-            ->addToken(new Token('Pôvodný text 1', '<div class="original-block">Pôvodný text 1</div>'))
-            ->addToken(new Token('Pôvodný text 2', '<div class="original-block">Pôvodný text 2</div>'));
+        $this->tokenCollection = $this->createCollection();
     }
 
     protected function copyTokens(array $tokens): array
@@ -24,5 +23,12 @@ abstract class AbstractTokenModifierTest extends TestCase
             $newTokens[$key] = clone $token;
         }
         return $newTokens;
+    }
+
+    protected function createCollection(): TokenCollection
+    {
+        return (new TokenCollection('/absolute/path/to/file.latte'))
+            ->addToken(new Token('Pôvodný text 1', '<div class="original-block">Pôvodný text 1</div>'))
+            ->addToken(new Token('Pôvodný text 2', '<div class="original-block">Pôvodný text 2</div>'));
     }
 }
