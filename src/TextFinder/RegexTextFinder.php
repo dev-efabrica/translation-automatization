@@ -25,7 +25,7 @@ class RegexTextFinder implements TextFinderInterface
                 $content = preg_replace($pattern, '', $content);
                 continue;
             }
-            $texts = array_merge($texts, $this->findTexts($pattern, $content, $textPosition, $texts));
+            $texts = array_merge($texts, $this->findTexts($pattern, $content, $textPosition));
             $content = preg_replace($pattern, '', $content);
         }
         return $texts;
