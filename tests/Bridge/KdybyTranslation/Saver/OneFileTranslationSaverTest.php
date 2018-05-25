@@ -72,14 +72,39 @@ class OneFileTranslationSaverTest extends TestCase
         $this->assertEquals("hello: Ahoj\nworld: svet\npovodny_text_1: Pôvodný text 1\npovodny_text_2: Pôvodný text 2\n", file_get_contents($this->nonEmptyFilePath));
     }
 
-    public function testComplexCollection()
+    public function testComplexCollectionDefaultIndent()
     {
         $this->assertFalse(file_exists($this->complexFilePath));
         $saver = new OneFileTranslationSaver($this->complexFilePath);
         $collection = (new PrefixTranslationKeyTokenModifier('pre-prefix.'))->modifyAll($this->createCollection());
         $saver->save($collection);
         $this->assertTrue(file_exists($this->nonEmptyFilePath));
+        $this->assertEquals("prefix:\n\tpovodny_text_1: Pôvodný text 1\n\tpovodny_text_2: Pôvodný text 2\n\n", file_get_contents($this->complexFilePath));
+    }
+
+    public function testComplexCollectionChangedIndent()
+    {
+        $this->assertFalse(file_exists($this->complexFilePath));
+        $saver = new OneFileTranslationSaver($this->complexFilePath, '    ');
+        $collection = (new PrefixTranslationKeyTokenModifier('pre-prefix.'))->modifyAll($this->createCollection());
+        $saver->save($collection);
+        $this->assertTrue(file_exists($this->nonEmptyFilePath));
         $this->assertEquals("prefix:\n    povodny_text_1: Pôvodný text 1\n    povodny_text_2: Pôvodný text 2\n\n", file_get_contents($this->complexFilePath));
+    }
+
+    public function testMultipleKeyUsage()
+    {
+        $collection = $this->createCollection();
+        $additionalToken = new Token('Pôvodný text 2 Foo Bar', '<div class="original-block">Pôvodný text 2</div>');
+        $additionalToken->changeTranslationKey('prefix.povodny_text_2.foo.bar');
+        $collection->addToken($additionalToken);
+
+        $this->assertFalse(file_exists($this->complexFilePath));
+        $saver = new OneFileTranslationSaver($this->complexFilePath, '    ');
+        $collection = (new PrefixTranslationKeyTokenModifier('pre-prefix.'))->modifyAll($collection);
+        $saver->save($collection);
+        $this->assertTrue(file_exists($this->nonEmptyFilePath));
+        $this->assertEquals("prefix:\n    povodny_text_1: Pôvodný text 1\n    povodny_text_2: Pôvodný text 2\n    povodny_text_2.foo.bar: Pôvodný text 2 Foo Bar\n\n", file_get_contents($this->complexFilePath));
     }
 
     private function createCollection(): TokenCollection

@@ -1,14 +1,15 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization\Tests\Bridge\Latte\TokenModifier;
+namespace Efabrica\TranslationsAutomatization\Tests\Bridge\KdybyTranslation\TokenModifier;
 
-use Efabrica\TranslationsAutomatization\Bridge\Latte\TokenModifier\LatteTokenModifier;
+use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\TokenModifier\LatteTokenModifier;
+use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\TokenModifier\ParamsExtractorTokenModifier;
 use Efabrica\TranslationsAutomatization\Tests\TokenModifier\AbstractTokenModifierTest;
 use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
 
 class LatteTokenModifierTest extends AbstractTokenModifierTest
 {
-    public function testDefault()
+    public function testDefaultWithoutParams()
     {
         $tokenModifier = new LatteTokenModifier();
         $originalTokens = $this->copyTokens($this->tokenCollection->getTokens());
@@ -19,6 +20,29 @@ class LatteTokenModifierTest extends AbstractTokenModifierTest
             $originalToken = $originalTokens[$i];
             $newToken = $newTokens[$i];
             $this->assertEquals('{_\'' . $originalToken->getTranslationKey() . '\'}', $newToken->getTranslationCode());
+        }
+    }
+
+    public function testDefaultWithParams()
+    {
+        $tokenModifier = new LatteTokenModifier();
+        $originalTokens = $this->copyTokens($this->tokenCollection->getTokens());
+        $paramsExtractorTokenModifier = new ParamsExtractorTokenModifier();
+        $newTokenCollection = $tokenModifier->modifyAll($paramsExtractorTokenModifier->modifyAll($this->tokenCollection));
+        $newTokens = $newTokenCollection->getTokens();
+        $this->assertInstanceOf(TokenCollection::class, $newTokenCollection);
+        for ($i = 0; $i < count($originalTokens); $i++) {
+            $newToken = $newTokens[$i];
+            $params = $newToken->getTextParameters();
+            $parameterText = '';
+            if ($params) {
+                $parameterText .= ', [';
+                foreach ($params as $key => $value) {
+                    $parameterText .= "'$key' => $value";
+                }
+                $parameterText .= ']';
+            }
+            $this->assertEquals('{_\'' . $newToken->getTranslationKey() . '\'' . $parameterText . '}', $newToken->getTranslationCode());
         }
     }
 
