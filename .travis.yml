@@ -21,6 +21,6 @@ script:
 after_success:
     - wget https://scrutinizer-ci.com/ocular.phar
     - php ocular.phar code-coverage:upload --format=php-clover build/logs/clover.xml
-    - wget https://github.com/php-coveralls/php-coveralls/releases/download/v2.0.0/php-coveralls.phar
-    - chmod +x php-coveralls.phar
-    - travis_retry php php-coveralls.phar -x build/logs/clover.xml
+#    - wget https://github.com/php-coveralls/php-coveralls/releases/download/v2.0.0/php-coveralls.phar
+#    - chmod +x php-coveralls.phar
+#    - travis_retry php php-coveralls.phar -x build/logs/clover.xml
