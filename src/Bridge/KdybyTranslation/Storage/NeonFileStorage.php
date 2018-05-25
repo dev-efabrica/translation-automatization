@@ -71,10 +71,7 @@ class NeonFileStorage implements StorageInterface
             $translations[$keyPart . '.' . implode('.', $translationKeyParts)] = $text;
             return $translations;
         }
-        if (!isset($translations[$keyPart])) {
-            $translations[$keyPart] = [];
-        }
-        $translations[$keyPart] = $this->addToTranslations($translations[$keyPart], $translationKeyParts, $text);
+        $translations[$keyPart] = $this->addToTranslations($translations[$keyPart] ?? [], $translationKeyParts, $text);
         return $translations;
     }
 }
