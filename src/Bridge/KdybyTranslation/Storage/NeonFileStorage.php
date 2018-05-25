@@ -25,8 +25,7 @@ class NeonFileStorage implements StorageInterface
         }
 
         $texts = Neon::decode(file_get_contents($this->filePath));
-        $this->flatten($texts);
-        return $texts;
+        return $this->arrayToFlat($texts);
     }
 
     public function save(array $texts): bool
@@ -42,22 +41,25 @@ class NeonFileStorage implements StorageInterface
         return (bool) file_put_contents($this->filePath, str_replace("\t", $this->indent, Neon::encode($translations, Encoder::BLOCK)));
     }
 
-    private function flatten(array &$translations, array $subnode = null, $path = null)
+    private function arrayToFlat(array $texts, array $translations = []): array
     {
-        if ($subnode === null) {
-            $subnode = &$translations;
-        }
-        foreach ($subnode as $key => $value) {
-            if (is_array($value)) {
-                $nodePath = $path ? $path . '.' . $key : $key;
-                $this->flatten($translations, $value, $nodePath);
-                if ($path === null) {
-                    unset($translations[$key]);
-                }
-            } elseif ($path !== null) {
-                $translations[$path . '.' . $key] = $value;
+        foreach ($texts as $key => $value) {
+            if (!is_array($value)) {
+                $translations[$key] = $value;
+                continue;
             }
+            $translations = $this->arrayToFlat($this->shiftArrayKey($value, $key), $translations);
         }
+        return $translations;
+    }
+
+    private function shiftArrayKey(array $texts, string $parentKey)
+    {
+        $newTexts = [];
+        foreach ($texts as $key => $value) {
+            $newTexts[$parentKey . '.' . $key] = $value;
+        }
+        return $newTexts;
     }
 
     private function addToTranslations(array $translations, array $translationKeyParts, string $text): array
