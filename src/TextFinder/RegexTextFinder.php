@@ -36,7 +36,6 @@ class RegexTextFinder implements TextFinderInterface
             }
             $content = preg_replace($pattern, '', $content);
         }
-
         return $texts;
     }
 }
