@@ -25,18 +25,24 @@ class RegexTextFinder implements TextFinderInterface
                 $content = preg_replace($pattern, '', $content);
                 continue;
             }
-            preg_match_all($pattern, $content, $matches);
-            $matchesCount = count($matches[0]);
-            for ($i = 0; $i < $matchesCount; ++$i) {
-                $text = trim($matches[$textPosition][$i]);
-                if ($text === '') {
-                    continue;
-                }
-                $texts[trim($matches[0][$i])] = $text;
-            }
+            $texts = array_merge($texts, $this->findTexts($pattern, $content, $textPosition));
             $content = preg_replace($pattern, '', $content);
         }
+        return $texts;
+    }
 
+    private function findTexts(string $pattern, string $content, int $textPosition): array
+    {
+        $texts = [];
+        preg_match_all($pattern, $content, $matches);
+        $matchesCount = count($matches[0]);
+        for ($i = 0; $i < $matchesCount; ++$i) {
+            $text = trim($matches[$textPosition][$i]);
+            if ($text === '') {
+                continue;
+            }
+            $texts[trim($matches[0][$i])] = $text;
+        }
         return $texts;
     }
 }

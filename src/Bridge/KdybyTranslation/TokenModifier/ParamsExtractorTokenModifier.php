@@ -20,7 +20,6 @@ class ParamsExtractorTokenModifier extends TokenModifier
     protected function modify(Token $token): Token
     {
         $targetText = $token->getTargetText();
-        $translationKey = $token->getTranslationKey();
         preg_match_all('/{(.*?)}/', $targetText, $matches);
 
         $textParameters = [];
@@ -28,18 +27,14 @@ class ParamsExtractorTokenModifier extends TokenModifier
         for ($i = 0; $i < $matchesCount; ++$i) {
             $paramName = $this->createParamName($matches[1][$i]);
             $paramValue = $this->createParamValue($matches[1][$i]);
-
             $targetText = str_replace($matches[0][$i], '%' . $paramName . '%', $targetText);
-            if ($token->getTargetText() === $token->getTranslationKey()) {
-                $translationKey = $targetText;
-            }
             $textParameters[$paramName] = $paramValue;
         }
 
+        $translationKey = $token->getTargetText() === $token->getTranslationKey() ? $targetText : $token->getTranslationKey();
         $token->setTextParameters($textParameters);
         $token->changeTargetText($targetText);
         $token->changeTranslationKey($translationKey);
-
         return $token;
     }
 
@@ -49,14 +44,14 @@ class ParamsExtractorTokenModifier extends TokenModifier
             return $this->staticParamsNameMap[$paramName];
         }
 
-        if (strpos($paramName, '$') === 0) {
-            $paramName = str_replace('$', '', $paramName);
-            if (strpos($paramName, '->')) {
-                $paramName = lcfirst(implode('', array_map('ucfirst', explode('->', $paramName))));
-            }
+        if (strpos($paramName, '$') !== 0) {
             return $paramName;
         }
 
+        $paramName = str_replace('$', '', $paramName);
+        if (strpos($paramName, '->') > 0) {
+            $paramName = lcfirst(implode('', array_map('ucfirst', explode('->', $paramName))));
+        }
         return $paramName;
     }
 
