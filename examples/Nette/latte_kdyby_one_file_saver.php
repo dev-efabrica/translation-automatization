@@ -1,6 +1,7 @@
 <?php
 
 use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\Saver\OneFileTranslationSaver;
+use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\Storage\NeonFileStorage;
 use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\TokenModifier\LatteTokenModifier;
 use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\TokenModifier\ParamsExtractorTokenModifier;
 use Efabrica\TranslationsAutomatization\FileFinder\FileFinder;
@@ -17,8 +18,8 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 $basePath = rtrim($argv[1] ?? __DIR__, '/');
 
-$saver = new OneFileTranslationSaver($basePath . '/app/lang/dictionary.sk_SK.neon', '    ');
-//$saver = new OneFileTranslationSaver($basePath . '/app/lang/dictionary.en_US.neon', '    ');
+$storage = new NeonFileStorage($basePath . '/app/lang/dictionary.sk_SK.neon', '    ');
+$saver = new OneFileTranslationSaver($storage);
 $translationFinder = new TranslationFinder($saver);
 
 $fileFinder = new FileFinder([$basePath . '/app'], ['latte']);

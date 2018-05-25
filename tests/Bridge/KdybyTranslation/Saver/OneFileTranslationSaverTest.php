@@ -3,6 +3,7 @@
 namespace Efabrica\TranslationsAutomatization\Tests\Bridge\KdybyTranslation\Saver;
 
 use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\Saver\OneFileTranslationSaver;
+use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\Storage\NeonFileStorage;
 use Efabrica\TranslationsAutomatization\Tokenizer\Token;
 use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
 use Efabrica\TranslationsAutomatization\TokenModifier\LowercaseUnderscoredTokenModifier;
@@ -16,6 +17,8 @@ class OneFileTranslationSaverTest extends TestCase
     private $nonEmptyFilePath;
 
     private $complexFilePath;
+
+    private $nonEmptyComplexFilePath;
 
     public function setUp()
     {
@@ -34,12 +37,19 @@ class OneFileTranslationSaverTest extends TestCase
         if (file_exists($this->complexFilePath)) {
             unlink($this->complexFilePath);
         }
+
+        $this->nonEmptyComplexFilePath =  __DIR__ . '/../../../../temp/kdyby-saver-test-non-empty-complex-file.neon';
+        if (file_exists($this->nonEmptyComplexFilePath)) {
+            unlink($this->nonEmptyComplexFilePath);
+        }
+        file_put_contents($this->nonEmptyComplexFilePath, "prefix:\n\thello: Ahoj\n\tworld: svet");
     }
 
     public function testSaveEmptyCollectionToEmptyFile()
     {
         $this->assertFalse(file_exists($this->emptyFilePath));
-        $saver = new OneFileTranslationSaver($this->emptyFilePath);
+        $storage = new NeonFileStorage($this->emptyFilePath);
+        $saver = new OneFileTranslationSaver($storage);
         $saver->save(new TokenCollection('/path/to/source/file'));
         $this->assertTrue(file_exists($this->emptyFilePath));
         $this->assertEquals('[]', file_get_contents($this->emptyFilePath));
@@ -48,7 +58,8 @@ class OneFileTranslationSaverTest extends TestCase
     public function testSaveEmptyCollectionToNonEmptyFile()
     {
         $this->assertTrue(file_exists($this->nonEmptyFilePath));
-        $saver = new OneFileTranslationSaver($this->nonEmptyFilePath);
+        $storage = new NeonFileStorage($this->nonEmptyFilePath);
+        $saver = new OneFileTranslationSaver($storage);
         $saver->save(new TokenCollection('/path/to/source/file'));
         $this->assertTrue(file_exists($this->nonEmptyFilePath));
         $this->assertEquals("hello: Ahoj\nworld: svet\n", file_get_contents($this->nonEmptyFilePath));
@@ -57,7 +68,8 @@ class OneFileTranslationSaverTest extends TestCase
     public function testSaveNonEmptyCollectionToEmptyFile()
     {
         $this->assertFalse(file_exists($this->emptyFilePath));
-        $saver = new OneFileTranslationSaver($this->emptyFilePath);
+        $storage = new NeonFileStorage($this->emptyFilePath);
+        $saver = new OneFileTranslationSaver($storage);
         $saver->save($this->createCollection());
         $this->assertTrue(file_exists($this->emptyFilePath));
         $this->assertEquals("povodny_text_1: Pôvodný text 1\npovodny_text_2: Pôvodný text 2\n", file_get_contents($this->emptyFilePath));
@@ -66,30 +78,33 @@ class OneFileTranslationSaverTest extends TestCase
     public function testSaveNonEmptyCollectionToNonEmptyFile()
     {
         $this->assertTrue(file_exists($this->nonEmptyFilePath));
-        $saver = new OneFileTranslationSaver($this->nonEmptyFilePath);
+        $storage = new NeonFileStorage($this->nonEmptyFilePath);
+        $saver = new OneFileTranslationSaver($storage);
         $saver->save($this->createCollection());
         $this->assertTrue(file_exists($this->nonEmptyFilePath));
-        $this->assertEquals("hello: Ahoj\nworld: svet\npovodny_text_1: Pôvodný text 1\npovodny_text_2: Pôvodný text 2\n", file_get_contents($this->nonEmptyFilePath));
+        $this->assertEquals("hello: Ahoj\npovodny_text_1: Pôvodný text 1\npovodny_text_2: Pôvodný text 2\nworld: svet\n", file_get_contents($this->nonEmptyFilePath));
     }
 
     public function testComplexCollectionDefaultIndent()
     {
         $this->assertFalse(file_exists($this->complexFilePath));
-        $saver = new OneFileTranslationSaver($this->complexFilePath);
+        $storage = new NeonFileStorage($this->complexFilePath);
+        $saver = new OneFileTranslationSaver($storage);
         $collection = (new PrefixTranslationKeyTokenModifier('pre-prefix.'))->modifyAll($this->createCollection());
         $saver->save($collection);
-        $this->assertTrue(file_exists($this->nonEmptyFilePath));
+        $this->assertTrue(file_exists($this->complexFilePath));
         $this->assertEquals("prefix:\n\tpovodny_text_1: Pôvodný text 1\n\tpovodny_text_2: Pôvodný text 2\n\n", file_get_contents($this->complexFilePath));
     }
 
     public function testComplexCollectionChangedIndent()
     {
-        $this->assertFalse(file_exists($this->complexFilePath));
-        $saver = new OneFileTranslationSaver($this->complexFilePath, '    ');
+        $this->assertTrue(file_exists($this->nonEmptyComplexFilePath));
+        $storage = new NeonFileStorage($this->nonEmptyComplexFilePath, '    ');
+        $saver = new OneFileTranslationSaver($storage);
         $collection = (new PrefixTranslationKeyTokenModifier('pre-prefix.'))->modifyAll($this->createCollection());
         $saver->save($collection);
-        $this->assertTrue(file_exists($this->nonEmptyFilePath));
-        $this->assertEquals("prefix:\n    povodny_text_1: Pôvodný text 1\n    povodny_text_2: Pôvodný text 2\n\n", file_get_contents($this->complexFilePath));
+        $this->assertTrue(file_exists($this->nonEmptyComplexFilePath));
+        $this->assertEquals("prefix:\n    hello: Ahoj\n    povodny_text_1: Pôvodný text 1\n    povodny_text_2: Pôvodný text 2\n    world: svet\n\n", file_get_contents($this->nonEmptyComplexFilePath));
     }
 
     public function testMultipleKeyUsage()
@@ -100,7 +115,8 @@ class OneFileTranslationSaverTest extends TestCase
         $collection->addToken($additionalToken);
 
         $this->assertFalse(file_exists($this->complexFilePath));
-        $saver = new OneFileTranslationSaver($this->complexFilePath, '    ');
+        $storage = new NeonFileStorage($this->complexFilePath, '    ');
+        $saver = new OneFileTranslationSaver($storage);
         $collection = (new PrefixTranslationKeyTokenModifier('pre-prefix.'))->modifyAll($collection);
         $saver->save($collection);
         $this->assertTrue(file_exists($this->nonEmptyFilePath));
