@@ -21,7 +21,7 @@ class BingTranslator implements TranslatorInterface
         $guzzleClient = new Client();
         $options = [
             'form_params' => [
-                'text' => implode(' | ', $strings),
+                'text' => implode('|', $strings),
                 'from' => $this->from,
                 'to' => $this->to,
             ]
@@ -31,7 +31,7 @@ class BingTranslator implements TranslatorInterface
         $newStrings = [];
         $response = json_decode((string) $request->getBody(), true);
         if ($response['statusCode'] === 200) {
-            $newStrings = explode(' | ', $response['translationResponse']);
+            $newStrings = array_map('trim', explode('|', $response['translationResponse']));
         }
         return array_combine($strings, $newStrings);
     }

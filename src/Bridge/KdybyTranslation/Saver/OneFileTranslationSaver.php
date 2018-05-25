@@ -11,9 +11,12 @@ class OneFileTranslationSaver implements SaverInterface
 {
     private $translationFile;
 
-    public function __construct(string $translationFile)
+    private $indent;
+
+    public function __construct(string $translationFile, string $indent = "\t")
     {
         $this->translationFile = $translationFile;
+        $this->indent = $indent;
     }
 
     public function save(TokenCollection $tokenCollection): bool
@@ -22,12 +25,9 @@ class OneFileTranslationSaver implements SaverInterface
         foreach ($tokenCollection->getTokens() as $token) {
             $translationKeyParts = explode('.', $token->getTranslationKey());
             array_shift($translationKeyParts);
-
-            $translations = $this->addToTranslations($translations, $translationKeyParts, $token->getOriginalText());
-
-//            $translations[implode('.', $translationKeyParts)] = $token->getOriginalText();
+            $translations = $this->addToTranslations($translations, $translationKeyParts, $token->getTargetText());
         }
-        return (bool) file_put_contents($this->translationFile, str_replace("\t", "    ", Neon::encode($translations, Encoder::BLOCK)));
+        return (bool) file_put_contents($this->translationFile, str_replace("\t", $this->indent, Neon::encode($translations, Encoder::BLOCK)));
     }
 
     private function load(): array
@@ -43,6 +43,10 @@ class OneFileTranslationSaver implements SaverInterface
         $keyPart = array_shift($translationKeyParts);
         if (count($translationKeyParts) === 0) {
             $translations[$keyPart] = $text;
+            return $translations;
+        }
+        if (isset($translations[$keyPart]) && is_string($translations[$keyPart])) {
+            $translations[$keyPart . '.' . implode('.', $translationKeyParts)] = $text;
             return $translations;
         }
         if (!isset($translations[$keyPart])) {

@@ -29,6 +29,8 @@ abstract class AbstractTokenModifierTest extends TestCase
     {
         return (new TokenCollection('/absolute/path/to/file.latte'))
             ->addToken(new Token('Pôvodný text 1', '<div class="original-block">Pôvodný text 1</div>'))
-            ->addToken(new Token('Pôvodný text 2', '<div class="original-block">Pôvodný text 2</div>'));
+            ->addToken(new Token('Pôvodný text 2', '<div class="original-block">Pôvodný text 2</div>'))
+            ->addToken(new Token('Premenná {$variable}', '<div class="original-block">Premenná {$variable}</div>'))
+        ;
     }
 }
