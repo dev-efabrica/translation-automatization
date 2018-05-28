@@ -10,11 +10,14 @@ class NeonFileStorage implements StorageInterface
 {
     private $filePath;
 
+    private $prefix;
+
     private $indent;
 
-    public function __construct(string $filePath, string $indent = "\t")
+    public function __construct(string $filePath, string $prefix, string $indent = "\t")
     {
         $this->filePath = $filePath;
+        $this->prefix = $prefix;
         $this->indent = $indent;
     }
 
@@ -35,6 +38,7 @@ class NeonFileStorage implements StorageInterface
 
         $translations = [];
         foreach ($texts as $key => $value) {
+            $key = strpos($key, $this->prefix) === 0 ? substr($key, strlen($this->prefix)) : $key;
             $translationKeyParts = explode('.', $key);
             $translations = $this->addToTranslations($translations, $translationKeyParts, $value);
         }
@@ -45,7 +49,7 @@ class NeonFileStorage implements StorageInterface
     {
         foreach ($texts as $key => $value) {
             if (!is_array($value)) {
-                $translations[$key] = $value;
+                $translations[$this->prefix . $key] = $value;
                 continue;
             }
             $translations = $this->arrayToFlat($this->shiftArrayKey($value, $key), $translations);

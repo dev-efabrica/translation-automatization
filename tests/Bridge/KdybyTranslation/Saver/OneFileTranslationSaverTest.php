@@ -48,7 +48,7 @@ class OneFileTranslationSaverTest extends TestCase
     public function testSaveEmptyCollectionToEmptyFile()
     {
         $this->assertFalse(file_exists($this->emptyFilePath));
-        $storage = new NeonFileStorage($this->emptyFilePath);
+        $storage = new NeonFileStorage($this->emptyFilePath, '');
         $saver = new OneFileTranslationSaver($storage);
         $saver->save(new TokenCollection('/path/to/source/file'));
         $this->assertTrue(file_exists($this->emptyFilePath));
@@ -58,7 +58,7 @@ class OneFileTranslationSaverTest extends TestCase
     public function testSaveEmptyCollectionToNonEmptyFile()
     {
         $this->assertTrue(file_exists($this->nonEmptyFilePath));
-        $storage = new NeonFileStorage($this->nonEmptyFilePath);
+        $storage = new NeonFileStorage($this->nonEmptyFilePath, 'prefix.');
         $saver = new OneFileTranslationSaver($storage);
         $saver->save(new TokenCollection('/path/to/source/file'));
         $this->assertTrue(file_exists($this->nonEmptyFilePath));
@@ -68,7 +68,7 @@ class OneFileTranslationSaverTest extends TestCase
     public function testSaveNonEmptyCollectionToEmptyFile()
     {
         $this->assertFalse(file_exists($this->emptyFilePath));
-        $storage = new NeonFileStorage($this->emptyFilePath);
+        $storage = new NeonFileStorage($this->emptyFilePath, 'prefix.');
         $saver = new OneFileTranslationSaver($storage);
         $saver->save($this->createCollection());
         $this->assertTrue(file_exists($this->emptyFilePath));
@@ -78,7 +78,7 @@ class OneFileTranslationSaverTest extends TestCase
     public function testSaveNonEmptyCollectionToNonEmptyFile()
     {
         $this->assertTrue(file_exists($this->nonEmptyFilePath));
-        $storage = new NeonFileStorage($this->nonEmptyFilePath);
+        $storage = new NeonFileStorage($this->nonEmptyFilePath, 'prefix.');
         $saver = new OneFileTranslationSaver($storage);
         $saver->save($this->createCollection());
         $this->assertTrue(file_exists($this->nonEmptyFilePath));
@@ -88,7 +88,7 @@ class OneFileTranslationSaverTest extends TestCase
     public function testComplexCollectionDefaultIndent()
     {
         $this->assertFalse(file_exists($this->complexFilePath));
-        $storage = new NeonFileStorage($this->complexFilePath);
+        $storage = new NeonFileStorage($this->complexFilePath, 'pre-prefix.');
         $saver = new OneFileTranslationSaver($storage);
         $collection = (new PrefixTranslationKeyTokenModifier('pre-prefix.'))->modifyAll($this->createCollection());
         $saver->save($collection);
@@ -99,7 +99,7 @@ class OneFileTranslationSaverTest extends TestCase
     public function testComplexCollectionChangedIndent()
     {
         $this->assertTrue(file_exists($this->nonEmptyComplexFilePath));
-        $storage = new NeonFileStorage($this->nonEmptyComplexFilePath, '    ');
+        $storage = new NeonFileStorage($this->nonEmptyComplexFilePath, 'pre-prefix.', '    ');
         $saver = new OneFileTranslationSaver($storage);
         $collection = (new PrefixTranslationKeyTokenModifier('pre-prefix.'))->modifyAll($this->createCollection());
         $saver->save($collection);
@@ -115,7 +115,7 @@ class OneFileTranslationSaverTest extends TestCase
         $collection->addToken($additionalToken);
 
         $this->assertFalse(file_exists($this->complexFilePath));
-        $storage = new NeonFileStorage($this->complexFilePath, '    ');
+        $storage = new NeonFileStorage($this->complexFilePath, 'pre-prefix.', '    ');
         $saver = new OneFileTranslationSaver($storage);
         $collection = (new PrefixTranslationKeyTokenModifier('pre-prefix.'))->modifyAll($collection);
         $saver->save($collection);
