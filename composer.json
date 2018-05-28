@@ -1,7 +1,7 @@
 {
-    "name": "efabrica/translation-automationzation",
+    "name": "efabrica/translation-automatization",
     "type": "library",
-    "description": "Translation automationzation",
+    "description": "Translation automatization",
     "keywords": ["PHP", "Translation", "Automatization"],
     "license": "MIT",
     "require": {
