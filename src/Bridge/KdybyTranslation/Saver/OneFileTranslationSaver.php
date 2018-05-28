@@ -19,9 +19,7 @@ class OneFileTranslationSaver implements SaverInterface
     {
         $texts = [];
         foreach ($tokenCollection->getTokens() as $token) {
-            $translationKeyParts = explode('.', $token->getTranslationKey());
-            array_shift($translationKeyParts);
-            $texts[implode('.', $translationKeyParts)] = $token->getTargetText();
+            $texts[$token->getTranslationKey()] = $token->getTargetText();
         }
         return $this->storage->save($texts);
     }

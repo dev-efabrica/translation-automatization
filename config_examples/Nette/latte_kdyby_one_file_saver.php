@@ -14,10 +14,6 @@ use Efabrica\TranslationsAutomatization\TokenModifier\LowercaseUnderscoredTokenM
 use Efabrica\TranslationsAutomatization\TokenModifier\PrefixTranslationKeyTokenModifier;
 use Efabrica\TranslationsAutomatization\TranslationFinder;
 
-require_once __DIR__ . '/../../vendor/autoload.php';
-
-$basePath = rtrim($argv[1] ?? __DIR__, '/');
-
 $storage = new NeonFileStorage($basePath . '/app/lang/dictionary.sk_SK.neon', '    ');
 $saver = new OneFileTranslationSaver($storage);
 $translationFinder = new TranslationFinder($saver);
@@ -25,14 +21,12 @@ $translationFinder = new TranslationFinder($saver);
 $fileFinder = new FileFinder([$basePath . '/app'], ['latte']);
 
 $textFinder = new RegexTextFinder();
-
+$textFinder->addPattern('/\{\_(.*?)\}/', null);
 $textFinder->addPattern('/title=\"([\p{L}\h\.\,\!\?\/\_\-]+)\"/siu');
 $textFinder->addPattern('/alt=\"([\p{L}\h\.\,\!\?\/\_\-]+)\"/siu');
 $textFinder->addPattern('/placeholder=\"([\p{L}\h\.\,\!\?\/\_\-]+)\"/siu');
 $textFinder->addPattern('/data-modal-title-small=\"([\p{L}\h\.\,\!\?\/\_\-]+)\"/siu');
 $textFinder->addPattern('/data-modal-body=\"([\p{L}\h\.\,\!\?\/\_\-\$\<\>\{\}\(\)\']+)\"/siu');
-
-$textFinder->addPattern('/\{\_(.*?)\}/', null);
 $textFinder->addPattern('/[\>\}](\s)*\{if \$(.*?)\}(\s)*[\<\{]/iu', null);
 $textFinder->addPattern('/[\>\}](\s)*\{\$(.*?)\}(\s)*[\<\{]/iu', null);
 $textFinder->addPattern('/\{\/if\}/u', null);
@@ -58,4 +52,4 @@ $tokenizer->addTokenModifier(new LatteTokenModifier());
 $tokenizer->addTokenModifier((new FalsePositiveRemoverTokenModifier())->addFalsePositivePattern('/} selected{/', '/selected/'));
 
 $translationFinder->addTokenizer($tokenizer);
-$translationFinder->translate();
+return $translationFinder;
