@@ -7,7 +7,7 @@ use Efabrica\TranslationsAutomatization\Saver\SaverInterface;
 use Efabrica\TranslationsAutomatization\TextFinder\RegexTextFinder;
 use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
 use Efabrica\TranslationsAutomatization\Tokenizer\Tokenizer;
-use Efabrica\TranslationsAutomatization\TranslationFinder;
+use Efabrica\TranslationsAutomatization\TranslationFinder\TranslationFinder;
 use PHPUnit\Framework\TestCase;
 
 class TranslationFinderTest extends TestCase
