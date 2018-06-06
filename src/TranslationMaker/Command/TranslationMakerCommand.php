@@ -33,7 +33,7 @@ class TranslationMakerCommand extends Command
             throw new InvalidConfigInstanceReturnedException('"' . (is_object($translationMaker) ? get_class($translationMaker) : $translationMaker) . '" is not instance of ' . TranslationMaker::class);
         }
 
-        $result = $translationMaker->make();
+        $translationMaker->make();
         $output->writeln('<comment>DONE</comment>');
     }
 }
