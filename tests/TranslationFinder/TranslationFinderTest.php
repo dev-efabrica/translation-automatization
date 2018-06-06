@@ -1,6 +1,6 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization\Tests;
+namespace Efabrica\TranslationsAutomatization\Tests\TranslationFinder;
 
 use Efabrica\TranslationsAutomatization\FileFinder\FileFinder;
 use Efabrica\TranslationsAutomatization\Saver\SaverInterface;
@@ -29,7 +29,7 @@ class TranslationFinderTest extends TestCase
             }
         };
 
-        $fileFinder = new FileFinder([__DIR__ . '/sample-data/latte-templates/first-template'], ['latte']);
+        $fileFinder = new FileFinder([__DIR__ . '/../sample-data/latte-templates/first-template'], ['latte']);
         $textFinder = new RegexTextFinder();
         $textFinder->addPattern('/\>([\p{L}\s\.\,\!\?\/\_\-]+)\</siu');
         $tokenizer = new Tokenizer($fileFinder, $textFinder);
@@ -43,12 +43,12 @@ class TranslationFinderTest extends TestCase
     {
         $saver = $this->createDevNullSaver();
 
-        $fileFinder = new FileFinder([__DIR__ . '/sample-data/latte-templates/first-template'], ['latte']);
+        $fileFinder = new FileFinder([__DIR__ . '/../sample-data/latte-templates/first-template'], ['latte']);
         $textFinder = new RegexTextFinder();
         $textFinder->addPattern('/\>([\p{L}\s\.\,\!\?\/\_\-]+)\</siu');
         $tokenizer1 = new Tokenizer($fileFinder, $textFinder);
 
-        $fileFinder = new FileFinder([__DIR__ . '/sample-data/latte-templates/first-template'], ['latte']);
+        $fileFinder = new FileFinder([__DIR__ . '/../sample-data/latte-templates/first-template'], ['latte']);
         $textFinder = new RegexTextFinder();
         $textFinder->addPattern('/\}([\p{L}\s\.\,\!\?\/\_\-]+)\{/siu');
         $tokenizer2 = new Tokenizer($fileFinder, $textFinder);
