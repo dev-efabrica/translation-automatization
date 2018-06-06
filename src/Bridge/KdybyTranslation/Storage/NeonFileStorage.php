@@ -26,8 +26,11 @@ class NeonFileStorage implements StorageInterface
         if (!file_exists($this->filePath)) {
             return [];
         }
-
-        $texts = Neon::decode(file_get_contents($this->filePath));
+        $content = trim(file_get_contents($this->filePath));
+        if ($content === '') {
+            return [];
+        }
+        $texts = Neon::decode($content);
         return $this->arrayToFlat($texts);
     }
 
@@ -41,6 +44,10 @@ class NeonFileStorage implements StorageInterface
             $key = strpos($key, $this->prefix) === 0 ? substr($key, strlen($this->prefix)) : $key;
             $translationKeyParts = explode('.', $key);
             $translations = $this->addToTranslations($translations, $translationKeyParts, $value);
+        }
+        $dirname = pathinfo($this->filePath, PATHINFO_DIRNAME);
+        if (!is_dir($dirname)) {
+            mkdir($dirname, 0777, true);
         }
         return (bool) file_put_contents($this->filePath, str_replace("\t", $this->indent, Neon::encode($translations, Encoder::BLOCK)));
     }

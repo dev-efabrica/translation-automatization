@@ -1,8 +1,9 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization\Exception;
+namespace Efabrica\TranslationsAutomatization\TranslationFinder\Command;
 
-use Efabrica\TranslationsAutomatization\TranslationFinder;
+use Efabrica\TranslationsAutomatization\Exception\InvalidConfigInstanceReturnedException;
+use Efabrica\TranslationsAutomatization\TranslationFinder\TranslationFinder;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

@@ -11,9 +11,11 @@ if (!$autoloader()) {
     );
 }
 
-use Efabrica\TranslationsAutomatization\Exception\TranslationFinderCommand;
+use Efabrica\TranslationsAutomatization\TranslationFinder\Command\TranslationFinderCommand;
+use Efabrica\TranslationsAutomatization\TranslationMaker\Command\TranslationMakerCommand;
 use Symfony\Component\Console\Application;
 
 $application = new Application();
 $application->add(new TranslationFinderCommand());
+$application->add(new TranslationMakerCommand());
 $application->run();
