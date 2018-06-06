@@ -5,8 +5,8 @@ namespace Efabrica\TranslationsAutomatization\Translator;
 interface TranslatorInterface
 {
     /**
-     * @param array $strings - list of strings to be translated
-     * @return array - list of translated strings in format old_string => new_string
+     * @param array $texts - list of texts to be translated
+     * @return array - list of translated texts in format old_text => new_text
      */
-    public function translate(array $strings): array;
+    public function translate(array $texts): array;
 }

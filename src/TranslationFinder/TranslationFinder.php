@@ -1,6 +1,6 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization;
+namespace Efabrica\TranslationsAutomatization\TranslationFinder;
 
 use Efabrica\TranslationsAutomatization\Saver\SaverInterface;
 use Efabrica\TranslationsAutomatization\Tokenizer\Tokenizer;
