@@ -4,6 +4,7 @@ use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\Saver\OneFileTra
 use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\Storage\NeonFileStorage;
 use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\TokenModifier\LatteTokenModifier;
 use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\TokenModifier\ParamsExtractorTokenModifier;
+use Efabrica\TranslationsAutomatization\Command\Extractor\Extractor;
 use Efabrica\TranslationsAutomatization\FileFinder\FileFinder;
 use Efabrica\TranslationsAutomatization\TextFinder\RegexTextFinder;
 use Efabrica\TranslationsAutomatization\Tokenizer\Tokenizer;
@@ -12,11 +13,11 @@ use Efabrica\TranslationsAutomatization\TokenModifier\FalsePositiveRemoverTokenM
 use Efabrica\TranslationsAutomatization\TokenModifier\FilePathToKeyTokenModifier;
 use Efabrica\TranslationsAutomatization\TokenModifier\LowercaseUnderscoredTokenModifier;
 use Efabrica\TranslationsAutomatization\TokenModifier\PrefixTranslationKeyTokenModifier;
-use Efabrica\TranslationsAutomatization\TranslationFinder;
 
+$basePath = rtrim($basePath, '/');
 $storage = new NeonFileStorage($basePath . '/app/lang/dictionary.sk_SK.neon', '    ');
 $saver = new OneFileTranslationSaver($storage);
-$translationFinder = new TranslationFinder($saver);
+$extractor = new Extractor($saver);
 
 $fileFinder = new FileFinder([$basePath . '/app'], ['latte']);
 
@@ -51,5 +52,5 @@ $tokenizer->addTokenModifier(new PrefixTranslationKeyTokenModifier('dictionary.'
 $tokenizer->addTokenModifier(new LatteTokenModifier());
 $tokenizer->addTokenModifier((new FalsePositiveRemoverTokenModifier())->addFalsePositivePattern('/} selected{/', '/selected/'));
 
-$translationFinder->addTokenizer($tokenizer);
-return $translationFinder;
+$extractor->addTokenizer($tokenizer);
+return $extractor;

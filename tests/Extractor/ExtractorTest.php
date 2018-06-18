@@ -1,22 +1,22 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization\Tests\TranslationFinder;
+namespace Efabrica\TranslationsAutomatization\Tests\Extractor;
 
+use Efabrica\TranslationsAutomatization\Command\Extractor\Extractor;
 use Efabrica\TranslationsAutomatization\FileFinder\FileFinder;
 use Efabrica\TranslationsAutomatization\Saver\SaverInterface;
 use Efabrica\TranslationsAutomatization\TextFinder\RegexTextFinder;
 use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
 use Efabrica\TranslationsAutomatization\Tokenizer\Tokenizer;
-use Efabrica\TranslationsAutomatization\TranslationFinder\TranslationFinder;
 use PHPUnit\Framework\TestCase;
 
-class TranslationFinderTest extends TestCase
+class ExtractorTest extends TestCase
 {
     public function testNoTokenizers()
     {
         $saver = $saver = $this->createDevNullSaver();
-        $translationFinder = new TranslationFinder($saver);
-        $this->assertEquals(0, $translationFinder->translate());
+        $extractor = new Extractor($saver);
+        $this->assertEquals(0, $extractor->extract());
     }
 
     public function testWithOneTokenizer()
@@ -34,9 +34,9 @@ class TranslationFinderTest extends TestCase
         $textFinder->addPattern('/\>([\p{L}\s\.\,\!\?\/\_\-]+)\</siu');
         $tokenizer = new Tokenizer($fileFinder, $textFinder);
 
-        $translationFinder = new TranslationFinder($saver);
-        $translationFinder->addTokenizer($tokenizer);
-        $this->assertEquals(8, $translationFinder->translate());
+        $extractor = new Extractor($saver);
+        $extractor->addTokenizer($tokenizer);
+        $this->assertEquals(8, $extractor->extract());
     }
 
     public function testWithMoreTokenizers()
@@ -53,11 +53,11 @@ class TranslationFinderTest extends TestCase
         $textFinder->addPattern('/\}([\p{L}\s\.\,\!\?\/\_\-]+)\{/siu');
         $tokenizer2 = new Tokenizer($fileFinder, $textFinder);
 
-        $translationFinder = new TranslationFinder($saver);
-        $translationFinder->addTokenizer($tokenizer1);
-        $translationFinder->addTokenizer($tokenizer2);
+        $extractor = new Extractor($saver);
+        $extractor->addTokenizer($tokenizer1);
+        $extractor->addTokenizer($tokenizer2);
 
-        $this->assertEquals(11, $translationFinder->translate());
+        $this->assertEquals(11, $extractor->extract());
     }
 
     private function createDevNullSaver()

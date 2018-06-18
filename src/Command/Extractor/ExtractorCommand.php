@@ -1,22 +1,21 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization\TranslationFinder\Command;
+namespace Efabrica\TranslationsAutomatization\Command\Extractor;
 
 use Efabrica\TranslationsAutomatization\Exception\InvalidConfigInstanceReturnedException;
-use Efabrica\TranslationsAutomatization\TranslationFinder\TranslationFinder;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class TranslationFinderCommand extends Command
+class ExtractorCommand extends Command
 {
     protected function configure()
     {
-        $this->setName('finder')
-            ->setDescription('Finds non-translated texts and replaces them with translate tokens')
-            ->addOption('config', null, InputOption::VALUE_REQUIRED, 'Path to config file. Instance of TranslationFinder have to be returned')
+        $this->setName('extract')
+            ->setDescription('Finds non-translated texts, replaces them with translate tokens and store these texts to storage')
+            ->addOption('config', null, InputOption::VALUE_REQUIRED, 'Path to config file. Instance of ' . Extractor::class  . ' have to be returned')
             ->addOption('params', null, InputOption::VALUE_REQUIRED, 'Params for config in format a=b&c=d');
     }
 
@@ -28,12 +27,12 @@ class TranslationFinderCommand extends Command
         parse_str($input->getOption('params'), $params);
         extract($params);
 
-        $translationFinder = require_once $input->getOption('config');
-        if (!$translationFinder instanceof TranslationFinder) {
-            throw new InvalidConfigInstanceReturnedException('"' . (is_object($translationFinder) ? get_class($translationFinder) : $translationFinder) . '" is not instance of ' . TranslationFinder::class);
+        $extractor = require_once $input->getOption('config');
+        if (!$extractor instanceof Extractor) {
+            throw new InvalidConfigInstanceReturnedException('"' . (is_object($extractor) ? get_class($extractor) : $extractor) . '" is not instance of ' . Extractor::class);
         }
 
-        $result = $translationFinder->translate();
+        $result = $extractor->extract();
         $output->writeln('<comment>' . $result . ' tokens replaced</comment>');
     }
 }
