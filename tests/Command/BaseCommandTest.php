@@ -75,19 +75,16 @@ abstract class BaseCommandTest extends TestCase
             public function setArgument($name, $value)
             {
                 $this->arguments[$name] = $value;
-
             }
 
             public function setInteractive($interactive)
             {
                 $this->interactive = $interactive;
-
             }
 
             public function setOption($name, $value)
             {
                 $this->options[$name] = $value;
-
             }
 
             public function validate()
