@@ -1,8 +1,8 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization\Tests\Command\Extractor;
+namespace Efabrica\TranslationsAutomatization\Tests\Command\ExtractorConfig;
 
-use Efabrica\TranslationsAutomatization\Command\Extractor\Extractor;
+use Efabrica\TranslationsAutomatization\Command\Extractor\ExtractorConfig;
 use Efabrica\TranslationsAutomatization\FileFinder\FileFinder;
 use Efabrica\TranslationsAutomatization\Saver\SaverInterface;
 use Efabrica\TranslationsAutomatization\TextFinder\RegexTextFinder;
@@ -10,13 +10,13 @@ use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
 use Efabrica\TranslationsAutomatization\Tokenizer\Tokenizer;
 use PHPUnit\Framework\TestCase;
 
-class ExtractorTest extends TestCase
+class ExtractorConfigTest extends TestCase
 {
     public function testNoTokenizers()
     {
         $saver = $saver = $this->createDevNullSaver();
-        $extractor = new Extractor($saver);
-        $this->assertEquals(0, $extractor->extract());
+        $extractorConfig = new ExtractorConfig($saver);
+        $this->assertEquals(0, $extractorConfig->extract());
     }
 
     public function testWithOneTokenizer()
@@ -34,9 +34,9 @@ class ExtractorTest extends TestCase
         $textFinder->addPattern('/\>([\p{L}\s\.\,\!\?\/\_\-]+)\</siu');
         $tokenizer = new Tokenizer($fileFinder, $textFinder);
 
-        $extractor = new Extractor($saver);
-        $extractor->addTokenizer($tokenizer);
-        $this->assertEquals(8, $extractor->extract());
+        $extractorConfig = new ExtractorConfig($saver);
+        $extractorConfig->addTokenizer($tokenizer);
+        $this->assertEquals(8, $extractorConfig->extract());
     }
 
     public function testWithMoreTokenizers()
@@ -53,11 +53,11 @@ class ExtractorTest extends TestCase
         $textFinder->addPattern('/\}([\p{L}\s\.\,\!\?\/\_\-]+)\{/siu');
         $tokenizer2 = new Tokenizer($fileFinder, $textFinder);
 
-        $extractor = new Extractor($saver);
-        $extractor->addTokenizer($tokenizer1);
-        $extractor->addTokenizer($tokenizer2);
+        $extractorConfig = new ExtractorConfig($saver);
+        $extractorConfig->addTokenizer($tokenizer1);
+        $extractorConfig->addTokenizer($tokenizer2);
 
-        $this->assertEquals(11, $extractor->extract());
+        $this->assertEquals(11, $extractorConfig->extract());
     }
 
     private function createDevNullSaver()

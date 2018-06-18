@@ -5,7 +5,7 @@ namespace Efabrica\TranslationsAutomatization\Command\Extractor;
 use Efabrica\TranslationsAutomatization\Saver\SaverInterface;
 use Efabrica\TranslationsAutomatization\Tokenizer\Tokenizer;
 
-class Extractor
+class ExtractorConfig
 {
     private $saver;
 
@@ -16,7 +16,7 @@ class Extractor
         $this->saver = $saver;
     }
 
-    public function addTokenizer(Tokenizer $tokenizer): Extractor
+    public function addTokenizer(Tokenizer $tokenizer): ExtractorConfig
     {
         $this->tokenizers[] = $tokenizer;
         return $this;

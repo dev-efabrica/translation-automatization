@@ -5,11 +5,11 @@ namespace Efabrica\TranslationsAutomatization\Command\Translator;
 use Efabrica\TranslationsAutomatization\Storage\StorageInterface;
 use Efabrica\TranslationsAutomatization\Translator\TranslatorInterface;
 
-class Translator
+class TranslatorConfig
 {
     private $something = [];
 
-    public function add(StorageInterface $source, StorageInterface $target, TranslatorInterface $translator): Translator
+    public function add(StorageInterface $source, StorageInterface $target, TranslatorInterface $translator): TranslatorConfig
     {
         $this->something[] = [
             $source,

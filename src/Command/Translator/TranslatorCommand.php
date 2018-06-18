@@ -15,7 +15,7 @@ class TranslatorCommand extends Command
     {
         $this->setName('translate')
             ->setDescription('Creates new language version of translated texts')
-            ->addOption('config', null, InputOption::VALUE_REQUIRED, 'Path to config file. Instance of ' . Translator::class . ' have to be returned')
+            ->addOption('config', null, InputOption::VALUE_REQUIRED, 'Path to config file. Instance of ' . TranslatorConfig::class . ' have to be returned')
             ->addOption('params', null, InputOption::VALUE_REQUIRED, 'Params for config in format a=b&c=d');
     }
 
@@ -27,12 +27,12 @@ class TranslatorCommand extends Command
         parse_str($input->getOption('params'), $params);
         extract($params);
 
-        $translator = require_once $input->getOption('config');
-        if (!$translator instanceof Translator) {
-            throw new InvalidConfigInstanceReturnedException('"' . (is_object($translator) ? get_class($translator) : $translator) . '" is not instance of ' . Translator::class);
+        $translatorConfig = require_once $input->getOption('config');
+        if (!$translatorConfig instanceof TranslatorConfig) {
+            throw new InvalidConfigInstanceReturnedException('"' . (is_object($translatorConfig) ? get_class($translatorConfig) : $translatorConfig) . '" is not instance of ' . TranslatorConfig::class);
         }
 
-        $translator->translate();
+        $translatorConfig->translate();
         $output->writeln('<comment>DONE</comment>');
     }
 }

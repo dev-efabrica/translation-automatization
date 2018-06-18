@@ -2,12 +2,12 @@
 
 namespace Efabrica\TranslationsAutomatization\Tests\Command\Translator;
 
+use Efabrica\TranslationsAutomatization\Command\Translator\TranslatorConfig;
 use Efabrica\TranslationsAutomatization\Storage\StorageInterface;
-use Efabrica\TranslationsAutomatization\Command\Translator\Translator;
 use Efabrica\TranslationsAutomatization\Translator\TranslatorInterface;
 use PHPUnit\Framework\TestCase;
 
-class TranslatorTest extends TestCase
+class TranslatorConfigTest extends TestCase
 {
     public function testAdd()
     {
@@ -15,8 +15,8 @@ class TranslatorTest extends TestCase
         $target = $this->createStorage();
         $translator = $this->createTranslator();
 
-        $translatorConfig = new Translator();
-        $this->assertInstanceOf(Translator::class, $translatorConfig->add($source, $target, $translator));
+        $translatorConfig = new TranslatorConfig();
+        $this->assertInstanceOf(TranslatorConfig::class, $translatorConfig->add($source, $target, $translator));
     }
 
     public function testTranslate()
@@ -28,8 +28,8 @@ class TranslatorTest extends TestCase
 
         $translator = $this->createTranslator(['hello' => 'ahoj', 'How are you?' => 'Ako sa máš?']);
 
-        $translatorConfig = new Translator();
-        $this->assertInstanceOf(Translator::class, $translatorConfig->add($source, $target, $translator));
+        $translatorConfig = new TranslatorConfig();
+        $this->assertInstanceOf(TranslatorConfig::class, $translatorConfig->add($source, $target, $translator));
         $this->assertNull($translatorConfig->translate());
 
         $this->assertEquals(['hello', 'How are you?', 'Do not translate this'], $source->load());

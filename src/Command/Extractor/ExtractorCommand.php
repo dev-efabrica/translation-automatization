@@ -15,7 +15,7 @@ class ExtractorCommand extends Command
     {
         $this->setName('extract')
             ->setDescription('Finds non-translated texts, replaces them with translate tokens and store these texts to storage')
-            ->addOption('config', null, InputOption::VALUE_REQUIRED, 'Path to config file. Instance of ' . Extractor::class  . ' have to be returned')
+            ->addOption('config', null, InputOption::VALUE_REQUIRED, 'Path to config file. Instance of ' . ExtractorConfig::class  . ' have to be returned')
             ->addOption('params', null, InputOption::VALUE_REQUIRED, 'Params for config in format a=b&c=d');
     }
 
@@ -27,12 +27,12 @@ class ExtractorCommand extends Command
         parse_str($input->getOption('params'), $params);
         extract($params);
 
-        $extractor = require_once $input->getOption('config');
-        if (!$extractor instanceof Extractor) {
-            throw new InvalidConfigInstanceReturnedException('"' . (is_object($extractor) ? get_class($extractor) : $extractor) . '" is not instance of ' . Extractor::class);
+        $extractorConfig = require_once $input->getOption('config');
+        if (!$extractorConfig instanceof ExtractorConfig) {
+            throw new InvalidConfigInstanceReturnedException('"' . (is_object($extractorConfig) ? get_class($extractorConfig) : $extractorConfig) . '" is not instance of ' . ExtractorConfig::class);
         }
 
-        $result = $extractor->extract();
+        $result = $extractorConfig->extract();
         $output->writeln('<comment>' . $result . ' tokens replaced</comment>');
     }
 }
