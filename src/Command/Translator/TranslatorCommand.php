@@ -1,22 +1,21 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization\TranslationMaker\Command;
+namespace Efabrica\TranslationsAutomatization\Command\Translator;
 
 use Efabrica\TranslationsAutomatization\Exception\InvalidConfigInstanceReturnedException;
-use Efabrica\TranslationsAutomatization\TranslationMaker\TranslationMaker;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class TranslationMakerCommand extends Command
+class TranslatorCommand extends Command
 {
     protected function configure()
     {
-        $this->setName('maker')
+        $this->setName('translate')
             ->setDescription('Creates new language version of translated texts')
-            ->addOption('config', null, InputOption::VALUE_REQUIRED, 'Path to config file. Instance of TranslationMaker have to be returned')
+            ->addOption('config', null, InputOption::VALUE_REQUIRED, 'Path to config file. Instance of ' . Translator::class . ' have to be returned')
             ->addOption('params', null, InputOption::VALUE_REQUIRED, 'Params for config in format a=b&c=d');
     }
 
@@ -28,12 +27,12 @@ class TranslationMakerCommand extends Command
         parse_str($input->getOption('params'), $params);
         extract($params);
 
-        $translationMaker = require_once $input->getOption('config');
-        if (!$translationMaker instanceof TranslationMaker) {
-            throw new InvalidConfigInstanceReturnedException('"' . (is_object($translationMaker) ? get_class($translationMaker) : $translationMaker) . '" is not instance of ' . TranslationMaker::class);
+        $translator = require_once $input->getOption('config');
+        if (!$translator instanceof Translator) {
+            throw new InvalidConfigInstanceReturnedException('"' . (is_object($translator) ? get_class($translator) : $translator) . '" is not instance of ' . Translator::class);
         }
 
-        $translationMaker->make();
+        $translator->translate();
         $output->writeln('<comment>DONE</comment>');
     }
 }

@@ -1,13 +1,13 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization\Tests\TranslationMaker;
+namespace Efabrica\TranslationsAutomatization\Tests\Command\Translator;
 
 use Efabrica\TranslationsAutomatization\Storage\StorageInterface;
-use Efabrica\TranslationsAutomatization\TranslationMaker\TranslationMaker;
+use Efabrica\TranslationsAutomatization\Command\Translator\Translator;
 use Efabrica\TranslationsAutomatization\Translator\TranslatorInterface;
 use PHPUnit\Framework\TestCase;
 
-class TranslationMakerTest extends TestCase
+class TranslatorTest extends TestCase
 {
     public function testAdd()
     {
@@ -15,11 +15,11 @@ class TranslationMakerTest extends TestCase
         $target = $this->createStorage();
         $translator = $this->createTranslator();
 
-        $maker = new TranslationMaker();
-        $this->assertInstanceOf(TranslationMaker::class, $maker->add($source, $target, $translator));
+        $translatorConfig = new Translator();
+        $this->assertInstanceOf(Translator::class, $translatorConfig->add($source, $target, $translator));
     }
 
-    public function testMake()
+    public function testTranslate()
     {
         $source = $this->createStorage(['hello', 'How are you?', 'Do not translate this']);
         $target = $this->createStorage();
@@ -28,9 +28,9 @@ class TranslationMakerTest extends TestCase
 
         $translator = $this->createTranslator(['hello' => 'ahoj', 'How are you?' => 'Ako sa máš?']);
 
-        $maker = new TranslationMaker();
-        $this->assertInstanceOf(TranslationMaker::class, $maker->add($source, $target, $translator));
-        $this->assertNull($maker->make());
+        $translatorConfig = new Translator();
+        $this->assertInstanceOf(Translator::class, $translatorConfig->add($source, $target, $translator));
+        $this->assertNull($translatorConfig->translate());
 
         $this->assertEquals(['hello', 'How are you?', 'Do not translate this'], $source->load());
         $this->assertEquals(['ahoj', 'Ako sa máš?', 'Do not translate this'], $target->load());
