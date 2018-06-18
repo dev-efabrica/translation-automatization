@@ -1,22 +1,22 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization\Tests\TranslationFinder;
+namespace Efabrica\TranslationsAutomatization\Tests\Command\ExtractorConfig;
 
+use Efabrica\TranslationsAutomatization\Command\Extractor\ExtractorConfig;
 use Efabrica\TranslationsAutomatization\FileFinder\FileFinder;
 use Efabrica\TranslationsAutomatization\Saver\SaverInterface;
 use Efabrica\TranslationsAutomatization\TextFinder\RegexTextFinder;
 use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
 use Efabrica\TranslationsAutomatization\Tokenizer\Tokenizer;
-use Efabrica\TranslationsAutomatization\TranslationFinder\TranslationFinder;
 use PHPUnit\Framework\TestCase;
 
-class TranslationFinderTest extends TestCase
+class ExtractorConfigTest extends TestCase
 {
     public function testNoTokenizers()
     {
         $saver = $saver = $this->createDevNullSaver();
-        $translationFinder = new TranslationFinder($saver);
-        $this->assertEquals(0, $translationFinder->translate());
+        $extractorConfig = new ExtractorConfig($saver);
+        $this->assertEquals(0, $extractorConfig->extract());
     }
 
     public function testWithOneTokenizer()
@@ -29,35 +29,35 @@ class TranslationFinderTest extends TestCase
             }
         };
 
-        $fileFinder = new FileFinder([__DIR__ . '/../sample-data/latte-templates/first-template'], ['latte']);
+        $fileFinder = new FileFinder([__DIR__ . '/../../sample-data/latte-templates/first-template'], ['latte']);
         $textFinder = new RegexTextFinder();
         $textFinder->addPattern('/\>([\p{L}\s\.\,\!\?\/\_\-]+)\</siu');
         $tokenizer = new Tokenizer($fileFinder, $textFinder);
 
-        $translationFinder = new TranslationFinder($saver);
-        $translationFinder->addTokenizer($tokenizer);
-        $this->assertEquals(8, $translationFinder->translate());
+        $extractorConfig = new ExtractorConfig($saver);
+        $extractorConfig->addTokenizer($tokenizer);
+        $this->assertEquals(8, $extractorConfig->extract());
     }
 
     public function testWithMoreTokenizers()
     {
         $saver = $this->createDevNullSaver();
 
-        $fileFinder = new FileFinder([__DIR__ . '/../sample-data/latte-templates/first-template'], ['latte']);
+        $fileFinder = new FileFinder([__DIR__ . '/../../sample-data/latte-templates/first-template'], ['latte']);
         $textFinder = new RegexTextFinder();
         $textFinder->addPattern('/\>([\p{L}\s\.\,\!\?\/\_\-]+)\</siu');
         $tokenizer1 = new Tokenizer($fileFinder, $textFinder);
 
-        $fileFinder = new FileFinder([__DIR__ . '/../sample-data/latte-templates/first-template'], ['latte']);
+        $fileFinder = new FileFinder([__DIR__ . '/../../sample-data/latte-templates/first-template'], ['latte']);
         $textFinder = new RegexTextFinder();
         $textFinder->addPattern('/\}([\p{L}\s\.\,\!\?\/\_\-]+)\{/siu');
         $tokenizer2 = new Tokenizer($fileFinder, $textFinder);
 
-        $translationFinder = new TranslationFinder($saver);
-        $translationFinder->addTokenizer($tokenizer1);
-        $translationFinder->addTokenizer($tokenizer2);
+        $extractorConfig = new ExtractorConfig($saver);
+        $extractorConfig->addTokenizer($tokenizer1);
+        $extractorConfig->addTokenizer($tokenizer2);
 
-        $this->assertEquals(11, $translationFinder->translate());
+        $this->assertEquals(11, $extractorConfig->extract());
     }
 
     private function createDevNullSaver()

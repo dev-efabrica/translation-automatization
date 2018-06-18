@@ -1,11 +1,11 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization\TranslationFinder;
+namespace Efabrica\TranslationsAutomatization\Command\Extractor;
 
 use Efabrica\TranslationsAutomatization\Saver\SaverInterface;
 use Efabrica\TranslationsAutomatization\Tokenizer\Tokenizer;
 
-class TranslationFinder
+class ExtractorConfig
 {
     private $saver;
 
@@ -16,13 +16,13 @@ class TranslationFinder
         $this->saver = $saver;
     }
 
-    public function addTokenizer(Tokenizer $tokenizer): TranslationFinder
+    public function addTokenizer(Tokenizer $tokenizer): ExtractorConfig
     {
         $this->tokenizers[] = $tokenizer;
         return $this;
     }
 
-    public function translate(): int
+    public function extract(): int
     {
         $tokensReplaced = 0;
         foreach ($this->tokenizers as $tokenizer) {

@@ -1,15 +1,15 @@
 <?php
 
-namespace Efabrica\TranslationsAutomatization\TranslationMaker;
+namespace Efabrica\TranslationsAutomatization\Command\Translator;
 
 use Efabrica\TranslationsAutomatization\Storage\StorageInterface;
 use Efabrica\TranslationsAutomatization\Translator\TranslatorInterface;
 
-class TranslationMaker
+class TranslatorConfig
 {
     private $something = [];
 
-    public function add(StorageInterface $source, StorageInterface $target, TranslatorInterface $translator): TranslationMaker
+    public function add(StorageInterface $source, StorageInterface $target, TranslatorInterface $translator): TranslatorConfig
     {
         $this->something[] = [
             $source,
@@ -19,8 +19,9 @@ class TranslationMaker
         return $this;
     }
 
-    public function make()
+    public function translate(): int
     {
+        $count = 0;
         foreach ($this->something as $something) {
             $texts = $something[0]->load();
             $newTexts = $something[2]->translate(array_values($texts));
@@ -28,8 +29,10 @@ class TranslationMaker
             $translations = [];
             foreach ($texts as $key => $text) {
                 $translations[$key] = $newTexts[$text] ?? '';
+                $count++;
             }
             $something[1]->save($translations);
         }
+        return $count;
     }
 }
