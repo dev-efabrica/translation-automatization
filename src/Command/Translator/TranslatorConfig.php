@@ -19,8 +19,9 @@ class TranslatorConfig
         return $this;
     }
 
-    public function translate(): void
+    public function translate(): int
     {
+        $count = 0;
         foreach ($this->something as $something) {
             $texts = $something[0]->load();
             $newTexts = $something[2]->translate(array_values($texts));
@@ -28,8 +29,10 @@ class TranslatorConfig
             $translations = [];
             foreach ($texts as $key => $text) {
                 $translations[$key] = $newTexts[$text] ?? '';
+                $count++;
             }
             $something[1]->save($translations);
         }
+        return $count;
     }
 }

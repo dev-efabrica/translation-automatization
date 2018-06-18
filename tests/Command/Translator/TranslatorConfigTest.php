@@ -30,7 +30,7 @@ class TranslatorConfigTest extends TestCase
 
         $translatorConfig = new TranslatorConfig();
         $this->assertInstanceOf(TranslatorConfig::class, $translatorConfig->add($source, $target, $translator));
-        $this->assertNull($translatorConfig->translate());
+        $this->assertEquals(3, $translatorConfig->translate());
 
         $this->assertEquals(['hello', 'How are you?', 'Do not translate this'], $source->load());
         $this->assertEquals(['ahoj', 'Ako sa máš?', 'Do not translate this'], $target->load());
