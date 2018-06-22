@@ -29,6 +29,9 @@ class TranslatorCommand extends Command
         extract($params);
 
         $translatorConfig = require_once $input->getArgument('config');
+        if ($translatorConfig instanceof InvalidConfigInstanceReturnedException) {
+            throw $translatorConfig;
+        }
         if (!$translatorConfig instanceof TranslatorConfig) {
             throw new InvalidConfigInstanceReturnedException('"' . (is_object($translatorConfig) ? get_class($translatorConfig) : $translatorConfig) . '" is not instance of ' . TranslatorConfig::class);
         }
