@@ -29,6 +29,9 @@ class ExtractorCommand extends Command
         extract($params);
 
         $extractorConfig = require_once $input->getArgument('config');
+        if ($extractorConfig instanceof InvalidConfigInstanceReturnedException) {
+            throw $extractorConfig;
+        }
         if (!$extractorConfig instanceof ExtractorConfig) {
             throw new InvalidConfigInstanceReturnedException('"' . (is_object($extractorConfig) ? get_class($extractorConfig) : $extractorConfig) . '" is not instance of ' . ExtractorConfig::class);
         }
