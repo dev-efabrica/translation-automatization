@@ -17,7 +17,11 @@ class ExtractorCommandTest extends BaseCommandTest
         $extractorCommand = new ExtractorCommand();
         $extractorCommand->run($input, $output);
 
-        $this->assertEquals([0 => "<comment>0 tokens replaced</comment>\n"], $output->getMessages(0));
+        $messages = $output->getMessages(0);
+        $this->assertEquals("Finding tokens...\n", $messages[1]);
+        $this->assertEquals("0 tokens found\n", $messages[2]);
+        $this->assertEquals("Processing tokens...\n", $messages[3]);
+        $this->assertEquals("<comment>0 tokens replaced</comment>\n", $messages[6]);
     }
 
     public function testWrongConfig()

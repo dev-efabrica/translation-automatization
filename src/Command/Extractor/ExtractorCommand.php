@@ -3,8 +3,10 @@
 namespace Efabrica\TranslationsAutomatization\Command\Extractor;
 
 use Efabrica\TranslationsAutomatization\Exception\InvalidConfigInstanceReturnedException;
+use Efabrica\TranslationsAutomatization\Tokenizer\Token;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -36,7 +38,26 @@ class ExtractorCommand extends Command
             throw new InvalidConfigInstanceReturnedException('"' . (is_object($extractorConfig) ? get_class($extractorConfig) : $extractorConfig) . '" is not instance of ' . ExtractorConfig::class);
         }
 
-        $result = $extractorConfig->extract();
-        $output->writeln('<comment>' . $result . ' tokens replaced</comment>');
+        $output->writeln('');
+        $output->writeln('Finding tokens...');
+        $tokenCollections = $extractorConfig->extract();
+        $totalTokens = 0;
+        foreach ($tokenCollections as $tokenCollection) {
+            $totalTokens += count($tokenCollection->getTokens());
+        }
+        $output->writeln($totalTokens . ' tokens found');
+        $output->writeln('Processing tokens...');
+        $output->writeln('');
+
+        $progressBar = new ProgressBar($output, $totalTokens);
+        $tokensReplaced = 0;
+        foreach ($tokenCollections as $tokenCollection) {
+            $extractorConfig->process($tokenCollection, function (Token $token) use ($progressBar, &$tokensReplaced) {
+                $progressBar->advance();
+                $tokensReplaced++;
+            });
+        }
+        $output->writeln("\n\n");
+        $output->writeln('<comment>' . $tokensReplaced . ' tokens replaced</comment>');
     }
 }
