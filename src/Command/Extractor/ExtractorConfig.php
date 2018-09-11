@@ -39,7 +39,7 @@ class ExtractorConfig
     public function process(TokenCollection $tokenCollection, Closure $callback): void
     {
         // tento kod by som mohol dat do nejakeho file updatera
-        $content = file_get_contents($tokenCollection->getFilePath());
+        $content = file_get_contents($tokenCollection->getFilePath()) ?: '';
         $newTexts = [];
         foreach ($tokenCollection->getTokens() as $token) {
             $newTexts[$token->getOriginalBlock()] = str_replace($token->getOriginalText(), $token->getTranslationCode(), $token->getOriginalBlock());
