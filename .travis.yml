@@ -7,7 +7,7 @@ php:
     - 7.4
     - nightly
 
-sudo: false
+sudo: required
 
 before_script:
     - composer update ${COMPOSER_FLAGS} --no-interaction
