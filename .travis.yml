@@ -16,8 +16,12 @@ script:
     - composer outdated -D --strict
     - composer require phpstan/phpstan --dev
     - vendor/bin/phpstan analyze src tests --level=max
+    - composer remove phpstan/phpstan --dev
     - vendor/bin/phpcs src tests --standard=PSR2 -n
     - vendor/bin/phpunit --coverage-text
+    - composer require infection/infection --dev
+    - vendor/bin/infection --min-msi=80
+    - composer remove infection/infection --dev
 
 after_success:
     - wget https://scrutinizer-ci.com/ocular.phar

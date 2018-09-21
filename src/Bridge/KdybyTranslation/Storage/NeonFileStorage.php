@@ -41,8 +41,9 @@ class NeonFileStorage implements StorageInterface
 
         $translations = [];
         foreach ($texts as $key => $value) {
+            $key = (string) $key;
             $key = strpos($key, $this->prefix) === 0 ? substr($key, strlen($this->prefix)) : $key;
-            $translationKeyParts = explode('.', (string) $key);
+            $translationKeyParts = explode('.', $key);
             $translations = $this->addToTranslations($translations, $translationKeyParts, $value);
         }
         $dirname = pathinfo($this->filePath, PATHINFO_DIRNAME);
