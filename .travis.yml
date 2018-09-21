@@ -20,7 +20,7 @@ script:
     - vendor/bin/phpcs src tests --standard=PSR2 -n
     - vendor/bin/phpunit --coverage-text
     - composer require infection/infection --dev
-    - vendor/bin/infection --min-msi=80
+    - vendor/bin/infection --min-msi=70
     - composer remove infection/infection --dev
 
 after_success:
