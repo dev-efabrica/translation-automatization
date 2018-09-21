@@ -18,8 +18,7 @@ class FilePathToKeyTokenModifier implements TokenModifierInterface
 
     public function modifyAll(TokenCollection $tokenCollection): TokenCollection
     {
-        $pathParts = explode('/', str_replace($this->basePath . '/', '', $tokenCollection->getFilePath()));
-        array_pop($pathParts);
+        $pathParts = array_unique(explode('/', str_replace($this->basePath . '/', '', pathinfo($tokenCollection->getFilePath(), PATHINFO_DIRNAME) . '/' . pathinfo($tokenCollection->getFilePath(), PATHINFO_FILENAME))));
         foreach ($tokenCollection->getTokens() as $token) {
             $newKeyParts = array_filter(array_map('strtolower', $pathParts), function ($pathPart) {
                 return !in_array($pathPart, $this->excludeDirectoryNames);

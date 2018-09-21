@@ -4,6 +4,14 @@ namespace Efabrica\TranslationsAutomatization\Tokenizer;
 
 class Token
 {
+    const TOKEN_TRANSLATION_KEY = 1;
+
+    const TOKEN_TRANSLATION_CODE = 2;
+
+    const TOKEN_TARGET_TEXT = 4;
+
+    const TOKEN_ALL = self::TOKEN_TRANSLATION_KEY | self::TOKEN_TRANSLATION_CODE | self::TOKEN_TARGET_TEXT;
+
     private $originalText;
 
     private $originalBlock;
