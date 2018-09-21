@@ -31,6 +31,7 @@ abstract class AbstractTokenModifierTest extends TestCase
             ->addToken(new Token('Pôvodný text 1', '<div class="original-block">Pôvodný text 1</div>'))
             ->addToken(new Token('Pôvodný text 2', '<div class="original-block">Pôvodný text 2</div>'))
             ->addToken(new Token('Premenná {$variable}', '<div class="original-block">Premenná {$variable}</div>'))
+            ->addToken(new Token(" \t\nJednoduché <strong>HTML</strong>\t\n ", '<div class="original-block">Jednoduché <strong>HTML</strong></div>'))
         ;
     }
 }

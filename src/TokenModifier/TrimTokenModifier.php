@@ -7,20 +7,20 @@ use Efabrica\TranslationsAutomatization\TokenModifier\TokenModifier;
 
 class TrimTokenModifier extends TokenModifier
 {
+    private $affectedTexts;
+
     private $prefixCharacterMask;
 
     private $suffixCharacterMask;
 
-    private $affectedTexts;
-
     public function __construct(
+        int $affectedTexts = Token::TOKEN_ALL,
         ?string $prefixCharacterMask = null,
-        ?string $suffixCharacterMask = null,
-        int $affectedTexts = Token::TOKEN_ALL
+        ?string $suffixCharacterMask = null
     ) {
+        $this->affectedTexts = $affectedTexts;
         $this->prefixCharacterMask = $prefixCharacterMask;
         $this->suffixCharacterMask = $suffixCharacterMask;
-        $this->affectedTexts = $affectedTexts;
     }
 
     protected function modify(Token $token): Token
@@ -39,8 +39,8 @@ class TrimTokenModifier extends TokenModifier
 
     private function changeText(string $text): string
     {
-        $text = ltrim($text, $this->prefixCharacterMask);
-        $text = rtrim($text, $this->suffixCharacterMask);
+        $text = $this->prefixCharacterMask === null ? ltrim($text) : ltrim($text, $this->prefixCharacterMask);
+        $text = $this->suffixCharacterMask === null ? rtrim($text) : rtrim($text, $this->suffixCharacterMask);
         return $text;
     }
 }
