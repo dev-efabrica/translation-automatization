@@ -43,15 +43,15 @@ class ParamsExtractorTokenModifierTest extends AbstractTokenModifierTest
     {
         $tokenModifier = new ParamsExtractorTokenModifier();
         $tokenCollection = new TokenCollection('/path/to/file');
-        $tokenCollection->addToken(new Token('This is my original text with {$param->title}', '<div>This is my original text with {$param->title}</div>'));
+        $tokenCollection->addToken(new Token('This is my original text with {$param->title} and {$param->sub_title}', '<div>This is my original text with {$param->title} and {$param->sub_title}</div>'));
         $newTokenCollection = $tokenModifier->modifyAll($tokenCollection);
 
         $this->assertCount(1, $newTokenCollection->getTokens());
         $token = current($newTokenCollection->getTokens());
 
-        $this->assertEquals('This is my original text with {$param->title}', $token->getOriginalText());
-        $this->assertEquals('This is my original text with %paramTitle%', $token->getTargetText());
-        $this->assertEquals(['paramTitle' => '$param->title'], $token->getTextParameters());
+        $this->assertEquals('This is my original text with {$param->title} and {$param->sub_title}', $token->getOriginalText());
+        $this->assertEquals('This is my original text with %paramTitle% and %paramSubTitle%', $token->getTargetText());
+        $this->assertEquals(['paramTitle' => '$param->title', 'paramSubTitle' => '$param->sub_title'], $token->getTextParameters());
     }
 
     public function testStaticParamsNameMap()
