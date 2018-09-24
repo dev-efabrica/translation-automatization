@@ -50,7 +50,7 @@ class ParamsExtractorTokenModifierTest extends AbstractTokenModifierTest
         $token = current($newTokenCollection->getTokens());
 
         $this->assertEquals('This is my original text with {$param->title} and {$param->sub_title}', $token->getOriginalText());
-        $this->assertEquals('This is my original text with %paramTitle% and {$paramSubTitle}', $token->getTargetText());
+        $this->assertEquals('This is my original text with %paramTitle% and %paramSubTitle%', $token->getTargetText());
         $this->assertEquals(['paramTitle' => '$param->title', 'paramSubTitle' => '$param->sub_title'], $token->getTextParameters());
     }
 
