@@ -50,7 +50,8 @@ class ParamsExtractorTokenModifier extends TokenModifier
 
         $paramName = str_replace('$', '', $paramName);
         if (strpos($paramName, '->') > 0) {
-            $paramName = lcfirst(implode('', array_map('ucfirst', explode('->', $paramName))));
+            $paramName = str_replace(['->', '_'], '###DELIMITER###', $paramName);
+            $paramName = lcfirst(implode('', array_map('ucfirst', explode('###DELIMITER###', $paramName))));
         }
         return $paramName;
     }
