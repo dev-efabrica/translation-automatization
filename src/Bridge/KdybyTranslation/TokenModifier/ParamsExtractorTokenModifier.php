@@ -44,6 +44,11 @@ class ParamsExtractorTokenModifier extends TokenModifier
             return $this->staticParamsNameMap[$paramName];
         }
 
+        if (strpos($paramName, '(') !== false && strpos($paramName, ')') !== false) {
+            preg_match('/\((.*?)\)/', $paramName, $matches);
+            $paramName = $matches[1] ?? $paramName;
+        }
+
         if (strpos($paramName, '$') !== 0) {
             return $paramName;
         }
