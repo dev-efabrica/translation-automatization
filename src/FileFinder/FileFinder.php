@@ -8,19 +8,19 @@ class FileFinder implements FileFinderInterface
 {
     private $dirs = [];
 
-    private $extensions = [];
+    private $filePatterns = [];
 
-    public function __construct(array $dirs, array $extensions)
+    public function __construct(array $dirs, array $filePatterns)
     {
         $this->dirs = $dirs;
-        $this->extensions = $extensions;
+        $this->filePatterns = $filePatterns;
     }
 
     public function find(): array
     {
         $finder = Finder::create()->files();
-        foreach ($this->extensions as $extension) {
-            $finder->name("*.$extension");
+        foreach ($this->filePatterns as $filePattern) {
+            $finder->name($filePattern);
         }
         $finder->in($this->dirs);
 

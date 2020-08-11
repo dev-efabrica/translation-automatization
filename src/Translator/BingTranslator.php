@@ -12,7 +12,7 @@ class BingTranslator implements TranslatorInterface
 
     private $chunkSize;
 
-    public function __construct(string $from, string $to, int $chunkSize = 100)
+    public function __construct(string $from, string $to, int $chunkSize = 1)
     {
         $this->from = $from;
         $this->to = $to;
@@ -29,15 +29,15 @@ class BingTranslator implements TranslatorInterface
             $options = [
                 'form_params' => [
                     'text' => implode(' | ', $strings),
-                    'from' => $this->from,
+                    'fromLang' => $this->from,
                     'to' => $this->to,
                 ]
             ];
-            $request = $guzzleClient->request('POST', 'https://www.bing.com/ttranslate', $options);
+            $request = $guzzleClient->request('POST', 'https://www.bing.com/ttranslatev3', $options);
 
             $response = json_decode((string) $request->getBody(), true);
-            if ($response['statusCode'] === 200) {
-                $newTexts = array_merge($newTexts, array_map('trim', explode('|', $response['translationResponse'])));
+            if ($request->getStatusCode() === 200) {
+                $newTexts = array_merge($newTexts, array_map('trim', explode('|', $response[0]['translations'][0]['text'])));
             }
         }
         return array_combine($texts, $newTexts);
