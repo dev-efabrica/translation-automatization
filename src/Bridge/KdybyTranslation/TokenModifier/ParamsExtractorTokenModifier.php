@@ -44,10 +44,21 @@ class ParamsExtractorTokenModifier extends TokenModifier
             return $this->staticParamsNameMap[$paramName];
         }
 
-        $paramName = str_replace(["$", "()", "->", "["], ["", "", "_", "_"], $paramName);
-        $paramName = preg_replace('/\W/', '', $paramName);
-        $result = preg_replace('/[A-Z]/', '_${0}', $paramName);
-        return strtolower(trim($result, '_'));
+        if (strpos($paramName, '(') !== false && strpos($paramName, ')') !== false) {
+            preg_match('/\((.*?)\)/', $paramName, $matches);
+            $paramName = $matches[1] ?? $paramName;
+        }
+
+        if (strpos($paramName, '$') !== 0) {
+            return $paramName;
+        }
+
+        $paramName = str_replace('$', '', $paramName);
+        if (strpos($paramName, '->') > 0 || strpos($paramName, '_') > 0) {
+            $paramName = str_replace(['->', '_'], '###DELIMITER###', $paramName);
+            $paramName = lcfirst(implode('', array_map('ucfirst', explode('###DELIMITER###', $paramName))));
+        }
+        return $paramName;
     }
 
     private function createParamValue(string $paramName): string

@@ -12,7 +12,7 @@ class BingTranslator implements TranslatorInterface
 
     private $chunkSize;
 
-    public function __construct(string $from, string $to, int $chunkSize = 1)
+    public function __construct(string $from, string $to, int $chunkSize = 100)
     {
         $this->from = $from;
         $this->to = $to;
