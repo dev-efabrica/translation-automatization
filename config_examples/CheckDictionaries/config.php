@@ -7,7 +7,7 @@ use Symfony\Component\Finder\Finder;
 
 /**
  * Usage:
- * --params="basePath=/your/base/path&fallbacks[cs_CZ][]=sk_SK"
+ * --params="basePath=/your/base/path&fallbacks[cs_CZ][]=sk_SK&languages[]=sk_SK&languages[]=en_US"
  */
 
 if (!isset($basePath)) {
@@ -18,22 +18,34 @@ $container = require $basePath . '/app/bootstrap.php';
 $containerParameters = $container->getParameters();
 $translationDirs = $containerParameters['translation']['dirs'] ?? [];
 
+$defaultTranslationDir = $basePath . '/app/lang';
+if (file_exists($defaultTranslationDir)) {
+    $translationDirs[] = $basePath . '/app/lang';
+}
+
 $files = Finder::create()->in($translationDirs);
-$dictionaryStorages = [];
+$dictionaries = [];
 foreach ($files as $file) {
     $filePath = (string)$file;
     $info = pathinfo($filePath);
     list($prefix, $lang,) = explode('.', $info['basename'], 3);
-    $dictionaryStorages[$lang][$info['dirname'] . '/' . $prefix] = new NeonFileStorage($filePath, $prefix . '.', '    ');
+    if (isset($languages) && !in_array($lang, $languages)) {
+        continue;
+    }
+    $storage = new NeonFileStorage($filePath, $prefix . '.', '    ');
+    $dictionaries[$lang] = array_merge($dictionaries[$lang] ?? [], $storage->load());
 }
 
 foreach ($fallbacks ?? [] as $lang => $fallbackLangs) {
+    if (!isset($dictionaries[$lang])) {
+        continue;
+    }
     foreach ($fallbackLangs as $fallbackLang) {
-        foreach ($dictionaryStorages[$fallbackLang] ?? [] as $module => $dictionary) {
-            if (!isset($dictionaryStorages[$lang][$module])) {
-                $dictionaryStorages[$lang][$module] = $dictionary;
+        foreach ($dictionaries[$fallbackLang] ?? [] as $key => $value) {
+            if (!isset($dictionaries[$lang][$key])) {
+                $dictionaries[$lang][$key] = $value;
             }
         }
     }
 }
-return new CheckDictionariesConfig($dictionaryStorages);
+return new CheckDictionariesConfig($dictionaries);

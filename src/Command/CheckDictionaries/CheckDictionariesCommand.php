@@ -45,6 +45,9 @@ class CheckDictionariesCommand extends Command
         $errors = [];
         foreach ($dictionaries as $lang1 => $dictionary1) {
             foreach ($dictionaries as $lang2 => $dictionary2) {
+                if ($lang1 === $lang2) {
+                    continue;
+                }
                 $missingTranslations = array_diff(array_keys($dictionary1), array_keys($dictionary2));
                 foreach ($missingTranslations as $missingTranslation) {
                     $errors[] = 'Missing translation for key ' . $missingTranslation . ' for language ' . $lang2;
@@ -52,12 +55,12 @@ class CheckDictionariesCommand extends Command
             }
         }
 
-        $output->writeln("\n", OutputInterface::VERBOSITY_VERY_VERBOSE);
-        foreach ($errors as $error) {
+        $output->writeln('', OutputInterface::VERBOSITY_VERY_VERBOSE);
+        foreach (array_unique($errors) as $error) {
             $output->writeln($error, OutputInterface::VERBOSITY_VERY_VERBOSE);
         }
 
-        $output->writeln("\n");
+        $output->writeln('');
         $output->writeln('<comment>' . count($errors) . ' errors found</comment>');
         return count($errors);
     }

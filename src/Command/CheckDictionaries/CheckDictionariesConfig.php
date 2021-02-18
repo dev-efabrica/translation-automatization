@@ -6,28 +6,22 @@ use Efabrica\TranslationsAutomatization\Storage\StorageInterface;
 
 class CheckDictionariesConfig
 {
-    /** @var array<string, StorageInterface[]> */
-    private $dictionaryStorages;
+    /** @var array<string, <string, string>> */
+    private $dictionaries;
 
     /**
-     * @param array<string, StorageInterface[]> $dictionaryStorages
+     * @param array<string, <string, string>> $dictionaries [language => [key => translation]]
      */
-    public function __construct(array $dictionaryStorages)
+    public function __construct(array $dictionaries)
     {
-        $this->dictionaryStorages = $dictionaryStorages;
+        $this->dictionaries = $dictionaries;
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, <string, string>> [language => [key => translation]]
      */
     public function load(): array
     {
-        $dictionaries = [];
-        foreach ($this->dictionaryStorages as $lang => $storages) {
-            foreach ($storages as $storage) {
-                $dictionaries[$lang] = array_merge($dictionaries[$lang] ?? [], $storage->load());
-            }
-        }
-        return $dictionaries;
+        return $this->dictionaries;
     }
 }
