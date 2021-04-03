@@ -59,5 +59,6 @@ class ExtractorCommand extends Command
         }
         $output->writeln("\n\n");
         $output->writeln('<comment>' . $tokensReplaced . ' tokens replaced</comment>');
+        return $tokensReplaced;
     }
 }
