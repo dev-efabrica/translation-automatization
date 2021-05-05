@@ -23,6 +23,10 @@ if (file_exists($defaultTranslationDir)) {
     $translationDirs[] = $basePath . '/app/lang';
 }
 
+if ($translationDirs === []) {
+    return new CheckDictionariesConfig([]);
+}
+
 $files = Finder::create()->in($translationDirs);
 $dictionaries = [];
 foreach ($files as $file) {
