@@ -38,5 +38,6 @@ class TranslatorCommand extends Command
 
         $translatorConfig->translate();
         $output->writeln('<comment>DONE</comment>');
+        return 0;
     }
 }
