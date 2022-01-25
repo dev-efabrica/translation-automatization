@@ -3,6 +3,7 @@
 use Efabrica\TranslationsAutomatization\Bridge\KdybyTranslation\Storage\NeonFileStorage;
 use Efabrica\TranslationsAutomatization\Command\CheckDictionaries\CheckDictionariesConfig;
 use Efabrica\TranslationsAutomatization\Exception\InvalidConfigInstanceReturnedException;
+use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
 /**
@@ -27,7 +28,11 @@ if ($translationDirs === []) {
     return new CheckDictionariesConfig([]);
 }
 
-$files = Finder::create()->in($translationDirs);
+try {
+    $files = Finder::create()->in($translationDirs);
+} catch (DirectoryNotFoundException $e) {
+    $files = [];
+}
 $dictionaries = [];
 foreach ($files as $file) {
     $filePath = (string)$file;
