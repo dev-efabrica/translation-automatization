@@ -4,17 +4,15 @@ namespace Efabrica\TranslationsAutomatization\TokenModifier;
 
 use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
 use Efabrica\TranslationsAutomatization\Translator\BingTranslator;
+use Efabrica\TranslationsAutomatization\Translator\TranslatorInterface;
 
-/**
- * @deprecated Use TranslateTokenModifier instead
- */
-class BingTranslateTokenModifier implements TokenModifierInterface
+class TranslateTokenModifier implements TokenModifierInterface
 {
     private $translator;
 
-    public function __construct(string $from, string $to)
+    public function __construct(TranslatorInterface $translator)
     {
-        $this->translator = new BingTranslator($from, $to);
+        $this->translator = $translator;
     }
 
     public function modifyAll(TokenCollection $tokenCollection): TokenCollection

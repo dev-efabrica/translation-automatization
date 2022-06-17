@@ -14,7 +14,7 @@ class NeonFileStorage implements StorageInterface
 
     private $indent;
 
-    public function __construct(string $filePath, string $prefix, string $indent = "\t")
+    public function __construct(string $filePath, string $prefix, string $indent = '    ')
     {
         $this->filePath = $filePath;
         $this->prefix = $prefix;

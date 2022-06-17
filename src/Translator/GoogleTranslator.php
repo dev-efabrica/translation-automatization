@@ -2,47 +2,52 @@
 
 namespace Efabrica\TranslationsAutomatization\Translator;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Stream;
+use Google\Client;
+use Google\Cloud\Translate\V3\TranslationServiceClient;
 
 class GoogleTranslator implements TranslatorInterface
 {
-    private $from;
+    private TranslationServiceClient $translationServiceClient;
 
-    private $to;
+    private string $projectId;
 
-    private $chunkSize;
+    private string $languageFrom;
 
-    public function __construct(string $from, string $to, int $chunkSize = 100)
-    {
-        $this->from = $from;
-        $this->to = $to;
-        $this->chunkSize = $chunkSize;
+    private string $languageTo;
+
+    public function __construct(
+        string $projectId,
+        string $credentialsFilePath,
+        string $languageFrom,
+        string $languageTo
+    ) {
+        $this->projectId = $projectId;
+        $this->languageFrom = $languageFrom;
+        $this->languageTo = $languageTo;
+
+        // google credentials
+        putenv('GOOGLE_APPLICATION_CREDENTIALS=' . $credentialsFilePath);
+
+        // cannot use service - before create must be authorized google credentials
+        $this->translationServiceClient = new TranslationServiceClient();
     }
 
     public function translate(array $texts): array
     {
-        $newTexts = [];
+        $response = $this->translationServiceClient->translateText(
+            $texts,
+            $this->languageTo,
+            TranslationServiceClient::locationName($this->projectId, 'global'),
+            [
+                'sourceLanguageCode' => $this->languageFrom,
+            ]
+        );
 
-        foreach (array_chunk($texts, $this->chunkSize) as $strings) {
-
-            $guzzleClient = new Client(['headers' => ['content-type' => 'application/x-www-form-urlencoded']]);
-            $options = [
-                'form_params' => [
-                    'sl' => $this->from,
-                    'tl' => $this->to,
-                    'q' => implode('|', $strings),
-                ]
-
-            ];
-            $request = $guzzleClient->request('POST', 'https://clients5.google.com/translate_a/t?client=dict-chrome-ex', $options);
-
-            $response = json_decode((string) $request->getBody(), true);
-
-            if ($request->getStatusCode() === 200) {
-                $newTexts = array_merge($newTexts, array_map('trim', explode('|', $response['sentences'][0]['trans'])));
-            }
+        $translations = [];
+        foreach ($response->getTranslations() as $translation) {
+            $translations[] = html_entity_decode($translation->getTranslatedText());
         }
-        return array_combine($texts, $newTexts);
+
+        return array_combine($texts, $translations);
     }
 }
