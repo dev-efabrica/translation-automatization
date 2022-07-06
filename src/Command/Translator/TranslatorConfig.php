@@ -23,7 +23,9 @@ class TranslatorConfig
     {
         $count = 0;
         foreach ($this->something as $something) {
-            $texts = $something[0]->load();
+            if (empty($texts = $something[0]->load())) {
+                continue;
+            }
             $newTexts = $something[2]->translate(array_values($texts));
 
             $translations = [];
