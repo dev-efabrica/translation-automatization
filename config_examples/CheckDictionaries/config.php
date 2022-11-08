@@ -8,20 +8,31 @@ use Symfony\Component\Finder\Finder;
 
 /**
  * Usage:
- * --params="basePath=/your/base/path&fallbacks[cs_CZ][]=sk_SK&languages[]=sk_SK&languages[]=en_US"
+ * --params="basePath=/your/base/path&bootstrap=relativePathToBootstrap&fallbacks[cs_CZ][]=sk_SK&languages[]=sk_SK&languages[]=en_US"
  */
 
 if (!isset($basePath)) {
     return new InvalidConfigInstanceReturnedException('$basePath is not set. Use --params="basePath=/your/base/path"');
 }
 
-$container = require $basePath . '/app/bootstrap.php';
-$containerParameters = $container->getParameters();
-$translationDirs = $containerParameters['translation']['dirs'] ?? [];
+$bootstrap = $bootstrap ?? 'app/bootstrap.php';
+$bootstrapPath = $basePath . '/' . $bootstrap;
 
-$defaultTranslationDir = $basePath . '/app/lang';
-if (file_exists($defaultTranslationDir)) {
-    $translationDirs[] = $basePath . '/app/lang';
+$translationDirsToCheck = [];
+if (file_exists($bootstrapPath)) {
+    $container = require $bootstrapPath;
+    $containerParameters = $container->getParameters();
+    $translationDirsToCheck = $containerParameters['translation']['dirs'] ?? [];
+}
+
+$translationDirsToCheck[] = $basePath . '/lang';
+$translationDirsToCheck[] = $basePath . '/app/lang';
+
+$translationDirs = [];
+foreach ($translationDirsToCheck as $translationDirToCheck) {
+    if (is_dir($translationDirToCheck)) {
+        $translationDirs[] = $translationDirToCheck;
+    }
 }
 
 if ($translationDirs === []) {
