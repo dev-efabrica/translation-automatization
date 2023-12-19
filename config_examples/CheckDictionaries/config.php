@@ -26,13 +26,27 @@ if (file_exists($bootstrapPath)) {
 }
 
 $translationDirsToCheck[] = $basePath . '/lang';
-$translationDirsToCheck[] = $basePath . '/app/lang';
+foreach (['app', 'src'] as $srcDir) {
+    try {
+        $modulesLangFinder = Finder::create()
+            ->directories()
+            ->name('lang')
+            ->in($basePath . '/' . $srcDir);
+    } catch (DirectoryNotFoundException $e) {
+        continue;
+    }
+    foreach ($modulesLangFinder as $dir) {
+        $translationDirsToCheck[] = $dir->getRealPath();
+    }
+}
 
 $translationDirs = [];
 foreach ($translationDirsToCheck as $translationDirToCheck) {
-    if (is_dir($translationDirToCheck)) {
-        $translationDirs[] = $translationDirToCheck;
+    $path = realpath($translationDirToCheck);
+    if ($path === false || !is_dir($path) || in_array($path, $translationDirs)) {
+        continue;
     }
+    $translationDirs[] = $path;
 }
 
 if ($translationDirs === []) {
