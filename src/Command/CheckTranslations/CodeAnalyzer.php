@@ -9,6 +9,7 @@ use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use SplFileInfo;
 
 class CodeAnalyzer
 {
@@ -50,7 +51,7 @@ class CodeAnalyzer
         return array_merge(...$translateCalls);
     }
 
-    private function findInLatte($file): array
+    private function findInLatte(SplFileInfo $file): array
     {
         $translateCalls = [];
         $regex = "/\{_'[^']*'\}/";
