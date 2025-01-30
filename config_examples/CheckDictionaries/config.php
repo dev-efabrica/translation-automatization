@@ -21,7 +21,7 @@ $bootstrapPath = $basePath . '/' . $bootstrap;
 $translationDirsToCheck = [];
 if (file_exists($bootstrapPath)) {
     $container = require $bootstrapPath;
-    $translationDirsToCheck = method_exists($container, 'getParamter') ? ($container->getParameter('translation')['dirs'] ?? []) : ($container->getParameters()['translation']['dirs'] ?? []);
+    $translationDirsToCheck = method_exists($container, 'getParameter') ? ($container->getParameter('translation')['dirs'] ?? []) : ($container->getParameters()['translation']['dirs'] ?? []);
 }
 
 $translationDirsToCheck[] = $basePath . '/lang';
