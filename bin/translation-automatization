@@ -21,5 +21,4 @@ $application = new Application();
 $application->add(new ExtractorCommand());
 $application->add(new TranslatorCommand());
 $application->add(new CheckDictionariesCommand());
-$application->add(new CheckTranslationsCommand());
 $application->run();
