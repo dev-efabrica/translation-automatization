@@ -61,8 +61,9 @@ $dictionaries = [];
 foreach ($files as $file) {
     $filePath = (string)$file;
     $info = pathinfo($filePath);
+    $extension = $info['extension'];
     list($prefix, $lang,) = explode('.', $info['basename'], 3);
-    if (isset($languages) && !in_array($lang, $languages)) {
+    if ($extension !== 'neon' || (isset($languages) && !in_array($lang, $languages))) {
         continue;
     }
     $storage = new NeonFileStorage($filePath, $prefix . '.', '    ');
