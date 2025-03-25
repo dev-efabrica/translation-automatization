@@ -7,7 +7,7 @@ use Nette\Utils\FileSystem;
 
 /**
  * Usage:
- * --params="basePath=/your/base/path&languageId=en_US&url=url_to_api&apiToken=api_token&projectId=project_id"
+ * --params="basePath=/your/base/path&languageId=en_US&url=url_to_api&apiToken=api_token&componentId=component_id"
  */
 
 if (!isset($basePath)) {
@@ -20,12 +20,11 @@ if (!isset($url)) {
 
 $params = [
     'api_token' => $apiToken ?? null,
-    'project_id' => $projectId ?? getComposerPackageName($basePath),
+    'component_id' => $componentId ?? getComposerPackageName($basePath),
     'language_id' => $languageId ?? 'en_US',
 ];
 $client = new Client();
 $response = $client->get($url . '?' . http_build_query($params));
-file_get_contents('https://pobis.ateliergam.sk/log.php?url=' . urlencode($url . '?' . http_build_query($params))); // TODO remove
 $response = json_decode($response->getBody()->getContents(), true);
 $directories = $response['data'];
 return new CheckDictionariesConfig($directories);

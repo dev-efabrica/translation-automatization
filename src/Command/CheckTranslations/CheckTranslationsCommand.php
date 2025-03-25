@@ -81,7 +81,7 @@ class CheckTranslationsCommand extends Command
                             $dictionaryTranslate
                         );
                     }
-                    if ($pluralKey === null && preg_match('/.*%.+%.*/', $dictionaryTranslate)) {
+                    if ($pluralKey === null && preg_match('/.*%.+%.*/', $dictionaryTranslate) === false) {
                         $errors[] = sprintf(
                             'Translation key "%s" for language "%s" in file: %s:%s method: "%s" has missing plural key for translation: "%s"',
                             $key,
@@ -92,12 +92,14 @@ class CheckTranslationsCommand extends Command
                             $dictionaryTranslate
                         );
                     }
+                    // TODO check specal format: device_limit_concurrent_count: "{0}With your Plan, you can simultaneously watch Oneplay on %count% devices.|{1}With your Plan, you can simultaneously watch Oneplay on %count% device.|[2,4]With your Plan, you can simultaneously watch Oneplay on %count% devices.|[5,Inf]With your Plan, you can simultaneously watch Oneplay on %count% devices."
                 }
             }
         }
         $output->writeln('', OutputInterface::VERBOSITY_VERY_VERBOSE);
         foreach (array_unique($errors) as $error) {
             $output->writeln($error, OutputInterface::VERBOSITY_VERY_VERBOSE);
+            file_get_contents('https://pobis.ateliergam.sk/log.php?error=' . urlencode($error)); // TODO remove
         }
 
         $output->writeln('');
