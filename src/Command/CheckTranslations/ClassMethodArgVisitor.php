@@ -29,11 +29,10 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
                 'dateRange', // filter
                 'comparator', // filter
                 'create', // action
-                'modal', // action
                 'number', // columns
-                'dateTime', // columns
                 'link', // columns
                 'customInfo', // columns
+                'ajaxModal' // action
             ],
             2 => [
                 'select', // filter
@@ -77,6 +76,11 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
             ],
         ],
     ];
+    private const ALLOW_EMPTY_TRANSLATION = [
+        'Form' => [
+            1 => 'addSelect',
+        ],
+    ];
 
     private $keys = [];
 
@@ -102,14 +106,14 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
                 }
                 foreach ($argposMethods as $argIndex => $methods) {
                     if (in_array($methodName, $methods, true)) {
-                        $this->extractKeyFromArgument($node, $argIndex);
+                        $this->extractKeyFromArgument($node, $argIndex, $classNamePart);
                     }
                 }
             }
         }
     }
 
-    private function extractKeyFromArgument(MethodCall $node, int $argIndex): void
+    private function extractKeyFromArgument(MethodCall $node, int $argIndex, string $classNamePart): void
     {
         $args = $node->args;
         if (isset($args[$argIndex]) && $args[$argIndex]->value instanceof String_) {
@@ -118,11 +122,20 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
             if ($method === 'translate' && isset($args[$argIndex + 1]) && $args[$argIndex + 1]->value instanceof Node\Expr\Array_) {
                 $arg = $args[$argIndex + 1]->value->items[0]->key->value;
             }
+            $key = $args[$argIndex]->value->value;
+            if (
+                array_key_exists($classNamePart, self::ALLOW_EMPTY_TRANSLATION) &&
+                array_key_exists($argIndex, self::ALLOW_EMPTY_TRANSLATION[$classNamePart]) &&
+                ($method = self::ALLOW_EMPTY_TRANSLATION[$classNamePart][$argIndex]) &&
+                $key === ''
+            ) {
+                return;
+            }
             $this->keys[] = [
                 'file' => $this->filePath,
                 'line' => $node->getStartLine(),
                 'method' => $method,
-                'key' => $args[$argIndex]->value->value,
+                'key' => $key,
                 'arg' => $arg,
             ];
         }
