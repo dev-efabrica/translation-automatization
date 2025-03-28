@@ -28,7 +28,6 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
                 'range', // filter
                 'dateRange', // filter
                 'comparator', // filter
-                'create', // action
                 'number', // columns
                 'link', // columns
                 'customInfo', // columns
@@ -44,12 +43,17 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
                 'published', // filter
                 'modal', // action
                 'createModal', // action
+                'create', // headerActions
                 'delete', // groupAction
                 'deleteFromRepo', // groupAction
                 'addInfo', // columns
             ]
         ],
         'Form' => [
+            0 => [
+                'flashMessage',
+                'setRequired',
+            ],
             1 => [
                 'addText',
                 'addTextArea',
@@ -70,9 +74,12 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
                 'addButton',
                 'addAjaxTags',
                 'addDateTimePicker',
+                'custom',
+                'addRule',
             ],
             2 => [
                 'addChooze',
+                'infoBadge',
             ],
         ],
     ];
