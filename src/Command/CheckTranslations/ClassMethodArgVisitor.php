@@ -2,7 +2,6 @@
 
 namespace Efabrica\TranslationsAutomatization\Command\CheckFormKeys;
 
-use Efabrica\WebComponent\Core\Menu\MenuItem;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Scalar\String_;
