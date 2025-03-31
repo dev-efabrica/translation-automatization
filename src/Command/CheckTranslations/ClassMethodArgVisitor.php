@@ -2,6 +2,7 @@
 
 namespace Efabrica\TranslationsAutomatization\Command\CheckFormKeys;
 
+use Efabrica\WebComponent\Core\Menu\MenuItem;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Scalar\String_;
@@ -82,10 +83,18 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
                 'infoBadge',
             ],
         ],
+        'Module' => [
+            2 => [
+                'addResource'
+            ],
+        ]
     ];
     private const ALLOW_EMPTY_TRANSLATION = [
         'Form' => [
-            1 => 'addSelect',
+            1 => [
+                'addSelect',
+                'addTextArea'
+            ]
         ],
     ];
 
@@ -133,14 +142,14 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
             if (
                 array_key_exists($classNamePart, self::ALLOW_EMPTY_TRANSLATION) &&
                 array_key_exists($argIndex, self::ALLOW_EMPTY_TRANSLATION[$classNamePart]) &&
-                ($method = self::ALLOW_EMPTY_TRANSLATION[$classNamePart][$argIndex]) &&
+                (in_array($method, self::ALLOW_EMPTY_TRANSLATION[$classNamePart][$argIndex])) &&
                 $key === ''
             ) {
                 return;
             }
             $this->keys[] = [
                 'file' => $this->filePath,
-                'line' => $node->getStartLine(),
+                'line' => $args[$argIndex]->getStartLine(),
                 'method' => $method,
                 'key' => $key,
                 'arg' => $arg,
