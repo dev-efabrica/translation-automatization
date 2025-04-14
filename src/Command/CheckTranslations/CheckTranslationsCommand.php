@@ -41,7 +41,7 @@ class CheckTranslationsCommand extends Command
         $output->writeln('Loading dictionaries...');
 
         $dictionaries = $checkDictionariesConfig->load();
-
+        $onlyOneLang = (count($dictionaries) === 1);
         $errors = [];
         $dirs = ['./app', './src'];
         $results = (new CodeAnalyzer($dirs))->analyzeDirectories();
@@ -55,14 +55,14 @@ class CheckTranslationsCommand extends Command
                 break;
             }
             foreach ($dictionaries as $lang => $dictionary) {
+                $langText = !$onlyOneLang ? ' for language "' . $lang . '"' : '';
                 if (!isset($dictionary[$key])) {
                     $errors[] = sprintf(
-                        'Missing translation for key "%s" for language "%s" in file: %s:%s method: "%s"',
+                        'Missing translation for key "%s" ' . $langText . 'in file: %s:%s call: "%s"',
                         $key,
-                        $lang,
                         $call['file'],
                         $call['line'],
-                        $call['method']
+                        $call['call']
                     );
                 } else {
                     // find plural bad key
@@ -71,35 +71,32 @@ class CheckTranslationsCommand extends Command
                     $pluralKeyInFile = $pluralKey ? '%' . $pluralKey . '%' : null;
                     if ($pluralKey && strpos($dictionaryTranslate, $pluralKeyInFile) === false) {
                         $errors[] = sprintf(
-                            'Translation key "%s" for language "%s" in file: %s:%s method: "%s" has bad plural key: %s for translation: "%s"',
+                            'Translation key "%s" ' . $langText . 'in file: %s:%s call: "%s" has bad plural key: %s for translation: "%s"',
                             $key,
-                            $lang,
                             $call['file'],
                             $call['line'],
-                            $call['method'],
+                            $call['call'],
                             $pluralKeyInFile,
                             $dictionaryTranslate
                         );
                     }
                     if ($pluralKey === null && preg_match('/.*%.+%.*/', $dictionaryTranslate) === false) {
                         $errors[] = sprintf(
-                            'Translation key "%s" for language "%s" in file: %s:%s method: "%s" has missing plural key for translation: "%s"',
+                            'Translation key "%s" ' . $langText . 'in file: %s:%s call: "%s" has missing plural key for translation: "%s"',
                             $key,
-                            $lang,
                             $call['file'],
                             $call['line'],
-                            $call['method'],
+                            $call['call'],
                             $dictionaryTranslate
                         );
                     }
-                    // TODO check specal format: device_limit_concurrent_count: "{0}With your Plan, you can simultaneously watch Oneplay on %count% devices.|{1}With your Plan, you can simultaneously watch Oneplay on %count% device.|[2,4]With your Plan, you can simultaneously watch Oneplay on %count% devices.|[5,Inf]With your Plan, you can simultaneously watch Oneplay on %count% devices."
+                    // TODO check special format: device_limit_concurrent_count: "{0}With your Plan, you can simultaneously watch Oneplay on %count% devices.|{1}With your Plan, you can simultaneously watch Oneplay on %count% device.|[2,4]With your Plan, you can simultaneously watch Oneplay on %count% devices.|[5,Inf]With your Plan, you can simultaneously watch Oneplay on %count% devices."
                 }
             }
         }
         $output->writeln('', OutputInterface::VERBOSITY_VERY_VERBOSE);
         foreach (array_unique($errors) as $error) {
             $output->writeln($error, OutputInterface::VERBOSITY_VERY_VERBOSE);
-            file_get_contents('https://pobis.ateliergam.sk/log.php?error=' . urlencode($error)); // TODO remove
         }
 
         $output->writeln('');
