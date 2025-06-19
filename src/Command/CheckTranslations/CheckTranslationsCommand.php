@@ -13,12 +13,24 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class CheckTranslationsCommand extends Command
 {
+    private $translationFindConfig;
+
+    public function __construct(?string $name = null)
+    {
+        parent::__construct($name);
+        $this->translationFindConfig = require __DIR__ . '/Config.php';
+    }
+
     protected function configure()
     {
         $this->setName('check:translations')
             ->setDescription('Compare all translation keys with dictionaries(from files or api) for languages(default en_US)')
             ->addArgument('config', InputArgument::REQUIRED, 'Path to config file. Instance of ' . CheckDictionariesConfig::class . ' have to be returned')
-            ->addOption('params', null, InputOption::VALUE_REQUIRED, 'Params for config in format --params="a=b&c=d"');
+            ->addOption('params', null, InputOption::VALUE_REQUIRED, 'Params for config in format --params="a=b&c=d"')
+            ->addOption('include', null, InputOption::VALUE_REQUIRED, 'Params for translationFindConfig in format json --include="{"CLASS_ARGPOS_METHODS": {"Module": { "2": ["addResource"] }}}"')
+            ->addOption('exclude', null, InputOption::VALUE_REQUIRED, 'Params for translationFindConfig in format json --exclude="{"CLASS_ARGPOS_METHODS": {"Module": { "2": ["addResource"] }}}"');
+        // example exclude: --exclude='{"ARGPOS_CLASSES":{"0":["Efabrica\\WebComponent\\Core\\Menu\\MenuItem"]},"CLASS_ARGPOS_METHODS":{"Module":{"2":["addResource"]}}}'
+        // example include: --include='{"CLASS_ARGPOS_METHODS":{"ALL":{"0":["trans"]}}}'
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -29,7 +41,7 @@ class CheckTranslationsCommand extends Command
         parse_str($input->getOption('params'), $params);
         extract($params);
 
-        $checkDictionariesConfig = require_once $input->getArgument('config');
+        $checkDictionariesConfig = require $input->getArgument('config');
         if ($checkDictionariesConfig instanceof InvalidConfigInstanceReturnedException) {
             throw $checkDictionariesConfig;
         }
@@ -44,7 +56,11 @@ class CheckTranslationsCommand extends Command
         $onlyOneLang = (count($dictionaries) === 1);
         $errors = [];
         $dirs = ['./app', './src'];
-        $results = (new CodeAnalyzer($dirs))->analyzeDirectories();
+
+        $exclude = json_decode($input->getOption('exclude') ?? '', true) ?? [];
+        $include = json_decode($input->getOption('include') ?? '', true) ?? [];
+        $this->processTranslationFindConfig($exclude, $include);
+        $results = (new CodeAnalyzer($dirs, $this->translationFindConfig))->analyzeDirectories();
         foreach ($results as $call) {
             $key = $call['key'];
             if ($key === 'dynamic_value' || !is_string($key)) {
@@ -102,5 +118,26 @@ class CheckTranslationsCommand extends Command
         $output->writeln('');
         $output->writeln('<comment>' . count($errors) . ' errors found</comment>');
         return count($errors);
+    }
+
+    private function processTranslationFindConfig(array $exclude, array $include): void
+    {
+        $this->translationFindConfig = array_merge_recursive($this->translationFindConfig, $include);
+        foreach ($exclude as $key => $value) {
+            $this->removeValueFromConfig($this->translationFindConfig, $key, $value);
+        }
+    }
+
+    private function removeValueFromConfig(array &$config, $key, $value): void
+    {
+        if (isset($config[$key])) {
+            if (is_array($config[$key]) && is_array($value)) {
+                foreach ($value as $subKey => $subValue) {
+                    $this->removeValueFromConfig($config[$key], $subKey, $subValue);
+                }
+            } elseif (($configKey = array_search($value, $config, true)) !== false) {
+                unset($config[$configKey]);
+            }
+        }
     }
 }

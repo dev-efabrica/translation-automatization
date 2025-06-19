@@ -15,9 +15,12 @@ class CodeAnalyzer
 {
     private $directories;
 
-    public function __construct(array $directories)
+    private $translationFindConfig;
+
+    public function __construct(array $directories, array $translationFindConfig)
     {
         $this->directories = $directories;
+        $this->translationFindConfig = $translationFindConfig;
     }
 
     public function analyzeDirectories(): array
@@ -75,7 +78,7 @@ class CodeAnalyzer
         $traverser = new NodeTraverser();
         $result = [];
 
-        $traverser->addVisitor(new ClassMethodArgVisitor($result, $filePath));
+        $traverser->addVisitor(new ClassMethodArgVisitor($result, $filePath, $this->translationFindConfig));
 
         try {
             $ast = $parser->parse($code);

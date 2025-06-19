@@ -12,98 +12,6 @@ use PhpParser\NodeVisitorAbstract;
 
 class ClassMethodArgVisitor extends NodeVisitorAbstract
 {
-    // class_part => lang_key position => methodName
-    private const CLASS_ARGPOS_METHODS = [
-        'ALL' => [
-            0 => [
-                'translate', // ITranslator
-            ],
-        ],
-        'Grid' => [
-            0 => [
-                'trans',
-                'global' // filter
-            ],
-            1 => [
-                'dateTime', // columns
-                'text', // columns
-                'add', // actions
-                'range', // filter
-                'dateRange', // filter
-                'comparator', // filter
-                'number', // columns
-                'link', // columns
-                'customInfo', // columns
-                'ajaxModal' // action
-            ],
-            2 => [
-                'select', // filter
-                'multiselect', // filter
-                'choozer', // filter
-                'ajaxSelect', // filter
-                'checkboxList', // filter
-                'multiValueComparator', // filter
-                'published', // filter
-                'modal', // action
-                'createModal', // action
-                'create', // headerActions
-                'delete', // groupAction
-                'deleteFromRepo', // groupAction
-                'addInfo', // columns
-            ]
-        ],
-        'Form' => [
-            0 => [
-                'setRequired',
-            ],
-            1 => [
-                'addText',
-                'addTextArea',
-                'addEmail',
-                'addInteger',
-                'addFloat',
-                'addDate',
-                'addTime',
-                'addDateTime',
-                'addUpload',
-                'addMultiUpload',
-                'addCheckbox',
-                'addRadioList',
-                'addCheckboxList',
-                'addSelect',
-                'addColor',
-                'addSubmit',
-                'addButton',
-                'addAjaxTags',
-                'addDateTimePicker',
-                'custom',
-                'addRule',
-            ],
-            2 => [
-                'addChooze',
-                'infoBadge',
-            ],
-        ],
-        'Module' => [
-            2 => [
-                'addResource'
-            ],
-        ]
-    ];
-    private const ALLOW_EMPTY_TRANSLATION = [
-        'Form' => [
-            1 => [
-                'addSelect',
-                'addTextArea'
-            ]
-        ],
-    ];
-    private const ARGPOS_CLASSES = [
-        0 => [
-            'Efabrica\WebComponent\Core\Menu\MenuItem',
-        ],
-    ];
-
     private $keys = [];
 
     private $filePath;
@@ -112,11 +20,14 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
 
     private $classArgposClassesMap = [];
 
-    public function __construct(array &$keys, string $filePath)
+    private $config;
+
+    public function __construct(array &$keys, string $filePath, array $config)
     {
         $this->keys = &$keys;
         $this->filePath = $filePath;
         $this->className = (string)pathinfo($filePath, PATHINFO_FILENAME);
+        $this->config = $config;
     }
 
     public function enterNode(Node $node)
@@ -136,8 +47,9 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
         if ($node instanceof MethodCall &&
             $node->name instanceof Identifier) {
             $methodName = $node->name->name;
-            foreach (self::CLASS_ARGPOS_METHODS as $classNamePart => $argposMethods) {
-                if ($classNamePart !== 'ALL' && strpos($this->className, $classNamePart) === false) {
+            foreach ($this->config['CLASS_ARGPOS_METHODS'] ?? [] as $classNamePart => $argposMethods) {
+                // ALL classes OR Classes end with classNamePart
+                if ($classNamePart !== 'ALL' && (strpos($this->className, $classNamePart) === false || substr($this->className, -strlen($classNamePart)) !== $classNamePart)) {
                     continue;
                 }
                 foreach ($argposMethods as $argIndex => $methods) {
@@ -154,7 +66,7 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
         if ($node instanceof Use_) {
             foreach ($node->uses as $use) {
                 $useName = $use->name->name;
-                foreach (self::ARGPOS_CLASSES as $argIndex => $classes) {
+                foreach ($this->config['ARGPOS_CLASSES'] ?? [] as $argIndex => $classes) {
                     if (in_array($useName, $classes)) {
                         $shortName = basename(str_replace('\\', '/', $useName));
                         $this->classArgposClassesMap[$argIndex] = $shortName;
@@ -175,11 +87,12 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
             }
 
             $key = $args[$argIndex]->value->value;
+            $allowEmptyTranslation = $this->config['ALLOW_EMPTY_TRANSLATION'] ?? [];
             if (
-                array_key_exists($classNamePart, self::ALLOW_EMPTY_TRANSLATION) &&
-                array_key_exists($argIndex, self::ALLOW_EMPTY_TRANSLATION[$classNamePart]) &&
+                array_key_exists($classNamePart, $allowEmptyTranslation) &&
+                array_key_exists($argIndex, $allowEmptyTranslation[$classNamePart]) &&
                 $key === '' &&
-                (in_array($method, self::ALLOW_EMPTY_TRANSLATION[$classNamePart][$argIndex], true))
+                (in_array($method, $allowEmptyTranslation[$classNamePart][$argIndex], true))
             ) {
                 return;
             }
