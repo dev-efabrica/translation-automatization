@@ -90,9 +90,9 @@ return [
                 'dateTime',
                 'text'
             ],
-//            2 => [
-//                'dropdown' // function array TODO
-//            ],
+            2 => [
+                'dropdown'
+            ],
             3 => [
                 'dropdown'
             ]

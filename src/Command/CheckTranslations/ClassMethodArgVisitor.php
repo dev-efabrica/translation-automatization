@@ -3,10 +3,13 @@
 namespace Efabrica\TranslationsAutomatization\Command\CheckFormKeys;
 
 use PhpParser\Node;
+use PhpParser\Node\Expr\Array_;
+use PhpParser\Node\Expr\Closure;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Scalar\String_;
+use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeVisitorAbstract;
 
@@ -79,6 +82,26 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
     private function extractKeyFromArgument(MethodCall $node, int $argIndex, string $classNamePart): void
     {
         $args = $node->args;
+        // find in funciton return array values
+        if (isset($args[$argIndex]) && $args[$argIndex]->value instanceof Closure &&
+            isset($args[$argIndex]->value) && isset($args[$argIndex]->value)
+        ) {
+            $method = $node->name->name;
+            $closure = $args[$argIndex]->value;
+            if ($closure->stmts !== null) {
+                $return = reset($closure->stmts);
+                if ($return instanceof Return_ && $return->expr instanceof Array_ && $return->expr->items !== null) {
+                    $items = $return->expr->items;
+                    foreach ($items as $item) {
+                        if ($item->value instanceof String_) {
+                            $key = $item->value->value;
+                            $this->addKey($item->value->getAttribute('startLine'), $method, $key, null);
+                        }
+                    }
+                }
+            }
+        }
+
         if (isset($args[$argIndex]) && $args[$argIndex]->value instanceof String_) {
             $method = $node->name->name;
             $arg = null;
