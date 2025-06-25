@@ -91,7 +91,7 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
             if (
                 array_key_exists($classNamePart, $allowEmptyTranslation) &&
                 array_key_exists($argIndex, $allowEmptyTranslation[$classNamePart]) &&
-                $key === '' &&
+                ($key === '' || $key === '--') &&
                 (in_array($method, $allowEmptyTranslation[$classNamePart][$argIndex], true))
             ) {
                 return;

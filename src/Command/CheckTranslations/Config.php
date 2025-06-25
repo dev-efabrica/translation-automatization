@@ -78,13 +78,36 @@ return [
             2 => [
                 'addResource'
             ]
-        ]
+        ],
+        'Plugin' => [
+            1 => [
+                'dropdown',
+                'multiDropdown',
+                'string',
+                'number',
+                'choozer',
+                'multi',
+                'dateTime',
+                'text'
+            ],
+//            2 => [
+//                'dropdown' // function array TODO
+//            ],
+            3 => [
+                'dropdown'
+            ]
+        ],
     ],
     'ALLOW_EMPTY_TRANSLATION' => [
         'Form' => [
             1 => [
                 'addSelect',
                 'addTextArea'
+            ]
+        ],
+        'Plugin' => [
+            3 => [
+                'dropdown'
             ]
         ],
     ],
