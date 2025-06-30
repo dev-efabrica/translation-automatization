@@ -12,6 +12,7 @@ if (!$autoloader()) {
 }
 
 use Efabrica\TranslationsAutomatization\Command\CheckDictionaries\CheckDictionariesCommand;
+use Efabrica\TranslationsAutomatization\Command\CheckTranslations\CheckTranslationsCommand;
 use Efabrica\TranslationsAutomatization\Command\Extractor\ExtractorCommand;
 use Efabrica\TranslationsAutomatization\Command\Translator\TranslatorCommand;
 use Symfony\Component\Console\Application;
@@ -20,4 +21,5 @@ $application = new Application();
 $application->add(new ExtractorCommand());
 $application->add(new TranslatorCommand());
 $application->add(new CheckDictionariesCommand());
+$application->add(new CheckTranslationsCommand());
 $application->run();
