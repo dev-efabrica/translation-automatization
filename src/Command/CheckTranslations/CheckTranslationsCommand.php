@@ -106,7 +106,6 @@ class CheckTranslationsCommand extends Command
                             $dictionaryTranslate
                         );
                     }
-                    // TODO check special format: device_limit_concurrent_count: "{0}With your Plan, you can simultaneously watch Oneplay on %count% devices.|{1}With your Plan, you can simultaneously watch Oneplay on %count% device.|[2,4]With your Plan, you can simultaneously watch Oneplay on %count% devices.|[5,Inf]With your Plan, you can simultaneously watch Oneplay on %count% devices."
                 }
             }
         }
