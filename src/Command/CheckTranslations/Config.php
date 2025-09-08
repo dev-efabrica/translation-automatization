@@ -86,6 +86,7 @@ return [
                 'string',
                 'number',
                 'choozer',
+                'checkbox',
                 'multi',
                 'dateTime',
                 'text'
