@@ -74,11 +74,11 @@ class CheckTranslationsCommand extends Command
                 $langText = !$onlyOneLang ? ' for language "' . $lang . '"' : '';
                 if (!isset($dictionary[$key])) {
                     $errors[] = sprintf(
-                        'Missing translation for key "%s" ' . $langText . 'in file: %s:%s call: "%s"',
+                        'Missing translation for key "%s" ' . $langText . 'in file: %s:%s' . (isset($call['call']) ? ' call: "%s"' : '%s'),
                         $key,
                         $call['file'],
                         $call['line'],
-                        $call['call']
+                        $call['call'] ?? ''
                     );
                 } else {
                     // find plural bad key
