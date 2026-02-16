@@ -23,7 +23,8 @@ return [
                 'number', // columns
                 'link', // columns
                 'customInfo', // columns
-                'ajaxModal' // action
+                'ajaxModal', // action
+                'modal', // action
             ],
             2 => [
                 'select', // filter
@@ -33,7 +34,6 @@ return [
                 'checkboxList', // filter
                 'multiValueComparator', // filter
                 'published', // filter
-                'modal', // action
                 'createModal', // action
                 'create', // headerActions
                 'delete', // groupAction
