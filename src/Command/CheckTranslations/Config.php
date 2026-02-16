@@ -89,7 +89,11 @@ return [
                 'checkbox',
                 'multi',
                 'dateTime',
-                'text'
+                'text',
+                'StringConfigItem',
+                'DateTimeConfigItem',
+                'NumberConfigItem',
+                'ChoozerConfigItem'
             ],
             2 => [
                 'dropdown'
