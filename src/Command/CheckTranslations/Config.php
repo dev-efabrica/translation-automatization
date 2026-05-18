@@ -24,7 +24,6 @@ return [
                 'link', // columns
                 'customInfo', // columns
                 'ajaxModal', // action
-                'modal', // action
             ],
             2 => [
                 'select', // filter
@@ -34,6 +33,7 @@ return [
                 'checkboxList', // filter
                 'multiValueComparator', // filter
                 'published', // filter
+                'modal', // action title key, arg 1 is often an internal action slug like "export"
                 'createModal', // action
                 'create', // headerActions
                 'delete', // groupAction
