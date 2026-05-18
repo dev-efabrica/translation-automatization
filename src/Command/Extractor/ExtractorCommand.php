@@ -27,7 +27,7 @@ class ExtractorCommand extends Command
         if (!is_file($input->getArgument('config'))) {
             throw new InvalidArgumentException('File "' . $input->getArgument('config') . '" does not exist');
         }
-        parse_str($input->getOption('params'), $params);
+        parse_str((string) $input->getOption('params'), $params);
         extract($params);
 
         $extractorConfig = require_once $input->getArgument('config');

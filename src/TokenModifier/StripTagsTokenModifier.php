@@ -7,11 +7,11 @@ use Efabrica\TranslationsAutomatization\TokenModifier\TokenModifier;
 
 class StripTagsTokenModifier extends TokenModifier
 {
-    private $affectedTexts;
+    private int $affectedTexts;
 
-    private $allowedTags;
+    private ?string $allowedTags;
 
-    public function __construct(int $affectedTexts = Token::TOKEN_ALL, string $allowedTags = null)
+    public function __construct(int $affectedTexts = Token::TOKEN_ALL, ?string $allowedTags = null)
     {
         $this->affectedTexts = $affectedTexts;
         $this->allowedTags = $allowedTags;

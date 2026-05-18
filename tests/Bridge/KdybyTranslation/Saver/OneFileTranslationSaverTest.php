@@ -12,15 +12,15 @@ use PHPUnit\Framework\TestCase;
 
 class OneFileTranslationSaverTest extends TestCase
 {
-    private $emptyFilePath;
+    private string $emptyFilePath;
 
-    private $nonEmptyFilePath;
+    private string $nonEmptyFilePath;
 
-    private $complexFilePath;
+    private string $complexFilePath;
 
-    private $nonEmptyComplexFilePath;
+    private string $nonEmptyComplexFilePath;
 
-    public function setUp()
+    protected function setUp(): void
     {
         $this->emptyFilePath = __DIR__ . '/../../../../temp/kdyby-saver-test-empty-file.neon';
         if (file_exists($this->emptyFilePath)) {
@@ -42,7 +42,7 @@ class OneFileTranslationSaverTest extends TestCase
         if (file_exists($this->nonEmptyComplexFilePath)) {
             unlink($this->nonEmptyComplexFilePath);
         }
-        file_put_contents($this->nonEmptyComplexFilePath, "prefix:\n\thello: Ahoj\n\tworld: svet");
+        file_put_contents($this->nonEmptyComplexFilePath, "prefix:\n    hello: Ahoj\n    world: svet");
     }
 
     public function testSaveEmptyCollectionToEmptyFile()
@@ -93,7 +93,7 @@ class OneFileTranslationSaverTest extends TestCase
         $collection = (new PrefixTranslationKeyTokenModifier('pre-prefix.'))->modifyAll($this->createCollection());
         $saver->save($collection);
         $this->assertTrue(file_exists($this->complexFilePath));
-        $this->assertEquals("prefix:\n\tpovodny_text_1: Pôvodný text 1\n\tpovodny_text_2: Pôvodný text 2\n\n", file_get_contents($this->complexFilePath));
+        $this->assertEquals("prefix:\n    povodny_text_1: Pôvodný text 1\n    povodny_text_2: Pôvodný text 2\n\n", file_get_contents($this->complexFilePath));
     }
 
     public function testComplexCollectionChangedIndent()

@@ -3,16 +3,17 @@
 namespace Efabrica\TranslationsAutomatization\Tests\TokenModifier;
 
 use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
-use Efabrica\TranslationsAutomatization\TokenModifier\BingTranslateTokenModifier;
+use Efabrica\TranslationsAutomatization\TokenModifier\TranslateTokenModifier;
 
-class BingTranslateTokenModifierTest extends AbstractTokenModifierTest
+class TranslateTokenModifierTest extends AbstractTokenModifierTest
 {
-    public function testTranslateSkToEn()
+    public function testTranslateAllKeys()
     {
-        $tokenModifier = new BingTranslateTokenModifier('sk', 'en');
+        $tokenModifier = new TranslateTokenModifier($this->createTranslator());
         $originalTokens = $this->copyTokens($this->tokenCollection->getTokens());
         $newTokenCollection = $tokenModifier->modifyAll($this->tokenCollection);
         $newTokens = $newTokenCollection->getTokens();
+
         $this->assertInstanceOf(TokenCollection::class, $newTokenCollection);
         for ($i = 0; $i < count($originalTokens); $i++) {
             $originalToken = $originalTokens[$i];
@@ -23,8 +24,9 @@ class BingTranslateTokenModifierTest extends AbstractTokenModifierTest
 
     public function testEmptyTokenCollection()
     {
-        $tokenModifier = new BingTranslateTokenModifier('sk', 'en');
+        $tokenModifier = new TranslateTokenModifier($this->createTranslator());
         $tokenCollection = new TokenCollection('/path/to/file');
+
         $this->assertEmpty($tokenCollection->getTokens());
         $newTokenCollection = $tokenModifier->modifyAll($tokenCollection);
         $this->assertInstanceOf(TokenCollection::class, $newTokenCollection);

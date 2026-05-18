@@ -2,7 +2,6 @@
 
 use Efabrica\TranslationsAutomatization\Command\CheckDictionaries\CheckDictionariesConfig;
 use Efabrica\TranslationsAutomatization\Exception\InvalidConfigInstanceReturnedException;
-use GuzzleHttp\Client;
 use Nette\Utils\FileSystem;
 
 /**
@@ -23,9 +22,8 @@ $params = [
     'component_id' => $componentId ?? getComposerPackageName($basePath),
     'language_id' => $languageId ?? 'en_US',
 ];
-$client = new Client();
-$response = $client->get($url . '?' . http_build_query($params));
-$response = json_decode($response->getBody()->getContents(), true);
+$response = file_get_contents($url . '?' . http_build_query($params));
+$response = json_decode($response ?: '', true);
 $directories = $response['data'];
 return new CheckDictionariesConfig($directories);
 

@@ -8,7 +8,6 @@ use Efabrica\TranslationsAutomatization\Command\Extractor\ExtractorConfig;
 use Efabrica\TranslationsAutomatization\FileFinder\FileFinder;
 use Efabrica\TranslationsAutomatization\TextFinder\RegexTextFinder;
 use Efabrica\TranslationsAutomatization\Tokenizer\Tokenizer;
-use Efabrica\TranslationsAutomatization\TokenModifier\BingTranslateTokenModifier;
 use Efabrica\TranslationsAutomatization\TokenModifier\FalsePositiveRemoverTokenModifier;
 use Efabrica\TranslationsAutomatization\TokenModifier\FilePathToKeyTokenModifier;
 use Efabrica\TranslationsAutomatization\TokenModifier\LowercaseUnderscoredTokenModifier;
@@ -44,8 +43,6 @@ $tokenizer->addTokenModifier(new ParamsExtractorTokenModifier(
         'date(\'j.n.Y\', strtotime($actualDate))' => 'actualDate',
     ]
 ));
-
-$tokenizer->addTokenModifier(new BingTranslateTokenModifier('sk', 'en'));
 $tokenizer->addTokenModifier(new LowercaseUnderscoredTokenModifier());
 $tokenizer->addTokenModifier(new FilePathToKeyTokenModifier($basePath, ['presenters', 'templates', 'components', 'modules']));
 $tokenizer->addTokenModifier(new PrefixTranslationKeyTokenModifier('dictionary.'));

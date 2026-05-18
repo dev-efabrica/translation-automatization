@@ -4,6 +4,7 @@ namespace Efabrica\TranslationsAutomatization\Tests\TokenModifier;
 
 use Efabrica\TranslationsAutomatization\Tokenizer\Token;
 use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
+use Efabrica\TranslationsAutomatization\Translator\TranslatorInterface;
 use PHPUnit\Framework\TestCase;
 
 abstract class AbstractTokenModifierTest extends TestCase
@@ -11,7 +12,7 @@ abstract class AbstractTokenModifierTest extends TestCase
     /** @var TokenCollection */
     protected $tokenCollection;
 
-    public function setUp()
+    protected function setUp(): void
     {
         $this->tokenCollection = $this->createCollection();
     }
@@ -33,5 +34,28 @@ abstract class AbstractTokenModifierTest extends TestCase
             ->addToken(new Token('Premenná {$variable}', '<div class="original-block">Premenná {$variable}</div>'))
             ->addToken(new Token(" \t\nJednoduché <strong>HTML</strong>\t\n ", '<div class="original-block">Jednoduché <strong>HTML</strong></div>'))
         ;
+    }
+
+    protected function createTranslator(array $map = []): TranslatorInterface
+    {
+        return new class($map) implements TranslatorInterface
+        {
+            private array $map;
+
+            public function __construct(array $map)
+            {
+                $this->map = $map;
+            }
+
+            public function translate(array $keys): array
+            {
+                $translations = [];
+                foreach ($keys as $key) {
+                    $translations[$key] = $this->map[$key] ?? ('translated:' . $key);
+                }
+
+                return $translations;
+            }
+        };
     }
 }

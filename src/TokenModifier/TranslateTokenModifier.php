@@ -3,12 +3,11 @@
 namespace Efabrica\TranslationsAutomatization\TokenModifier;
 
 use Efabrica\TranslationsAutomatization\Tokenizer\TokenCollection;
-use Efabrica\TranslationsAutomatization\Translator\BingTranslator;
 use Efabrica\TranslationsAutomatization\Translator\TranslatorInterface;
 
 class TranslateTokenModifier implements TokenModifierInterface
 {
-    private $translator;
+    private TranslatorInterface $translator;
 
     public function __construct(TranslatorInterface $translator)
     {

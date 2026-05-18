@@ -20,7 +20,7 @@ class FileFinder implements FileFinderInterface
     {
         $finder = Finder::create()->files();
         foreach ($this->filePatterns as $filePattern) {
-            $finder->name($filePattern);
+            $finder->name($this->normalizeFilePattern($filePattern));
         }
         $finder->in($this->dirs);
 
@@ -29,5 +29,14 @@ class FileFinder implements FileFinderInterface
             $files[] = (string) $file;
         }
         return $files;
+    }
+
+    private function normalizeFilePattern(string $filePattern): string
+    {
+        if (strpbrk($filePattern, '*?') !== false || strpos($filePattern, '.') !== false) {
+            return $filePattern;
+        }
+
+        return '*.' . $filePattern;
     }
 }
