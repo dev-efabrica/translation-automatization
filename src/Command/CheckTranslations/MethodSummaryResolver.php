@@ -59,7 +59,7 @@ class MethodSummaryResolver
         }
 
         $this->resolving[$cacheKey] = true;
-        $candidates = $this->collectCandidatesFromStatements($definition->statements, $className, [], []);
+        $candidates = $this->collectCandidatesFromStatements($definition->getStatements(), $className, [], []);
         unset($this->resolving[$cacheKey]);
 
         return $this->cache[$cacheKey] = $candidates;
@@ -258,7 +258,7 @@ class MethodSummaryResolver
 
         $candidates = [];
         $candidates = $this->collectReturnedObjectCandidatesFromStatements(
-            $definition->statements,
+            $definition->getStatements(),
             $className,
             $substitutions,
             $sourceClassName
@@ -486,7 +486,7 @@ class MethodSummaryResolver
             }
 
             $origins = [];
-            $this->scanClosureTranslationOrigins($methodDefinition->statements, $constructorParameters, $origins, $translatedParameters);
+            $this->scanClosureTranslationOrigins($methodDefinition->getStatements(), $constructorParameters, $origins, $translatedParameters);
         }
 
         return $this->closureTranslatedConstructorParameters[$className] = $translatedParameters;

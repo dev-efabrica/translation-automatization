@@ -17,6 +17,8 @@ class CheckTranslationsDeepCommand extends Command
 
     private const IGNORE_TRANSLATION_MARKER = '@Ignore translation';
 
+    private const FILE_LINES_CACHE_MAX = 64;
+
     /**
      * @var array<string, array<int, string>>
      */
@@ -543,15 +545,25 @@ class CheckTranslationsDeepCommand extends Command
      */
     private function getFileLines(string $file): array
     {
-        if (!isset($this->fileLinesCache[$file])) {
-            if (!is_file($file)) {
-                $this->fileLinesCache[$file] = [];
-            } else {
-                $loaded = @file($file);
-                $this->fileLinesCache[$file] = $loaded === false ? [] : $loaded;
-            }
+        if (isset($this->fileLinesCache[$file])) {
+            $cached = $this->fileLinesCache[$file];
+            unset($this->fileLinesCache[$file]);
+            $this->fileLinesCache[$file] = $cached;
+            return $cached;
         }
 
-        return $this->fileLinesCache[$file];
+        if (!is_file($file)) {
+            $lines = [];
+        } else {
+            $loaded = @file($file);
+            $lines = $loaded === false ? [] : $loaded;
+        }
+
+        $this->fileLinesCache[$file] = $lines;
+        if (count($this->fileLinesCache) > self::FILE_LINES_CACHE_MAX) {
+            array_shift($this->fileLinesCache);
+        }
+
+        return $lines;
     }
 }

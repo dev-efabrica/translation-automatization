@@ -11,6 +11,13 @@ class ProjectClassIndex
     /** @var array<string, ProjectClassDefinition> */
     private array $classes = [];
 
+    private ?MethodBodyCache $bodyCache = null;
+
+    public function setBodyCache(?MethodBodyCache $bodyCache): void
+    {
+        $this->bodyCache = $bodyCache;
+    }
+
     public function addClass(ProjectClassDefinition $classDefinition): void
     {
         $this->classes[$classDefinition->className] = $classDefinition;
@@ -78,15 +85,33 @@ class ProjectClassIndex
     public static function fromAst(array $ast, TranslationKeyExpressionResolver $resolver): self
     {
         $index = new self();
-        foreach ($ast as $node) {
-            self::collectClasses($index, $node);
-        }
-
-        foreach ($index->classes as $classDefinition) {
-            $index->resolveClassConstants($classDefinition->className, $resolver, []);
-        }
+        $index->collectFromAst($ast);
+        $index->resolveAllConstants($resolver);
 
         return $index;
+    }
+
+    /**
+     * Register classes from a single file's AST. Designed to be called per-file so the caller
+     * can discard each AST before parsing the next one (keeps peak memory bounded on big projects).
+     *
+     * The optional $file is stored on each ProjectMethodDefinition so the body can be lazily
+     * re-parsed later via MethodBodyCache instead of being pinned in memory.
+     *
+     * @param Node[] $ast
+     */
+    public function collectFromAst(array $ast, ?string $file = null): void
+    {
+        foreach ($ast as $node) {
+            $this->collectClasses($node, $file);
+        }
+    }
+
+    public function resolveAllConstants(TranslationKeyExpressionResolver $resolver): void
+    {
+        foreach ($this->classes as $classDefinition) {
+            $this->resolveClassConstants($classDefinition->className, $resolver, []);
+        }
     }
 
     private function resolveClassConstants(string $className, TranslationKeyExpressionResolver $resolver, array $resolving): array
@@ -117,6 +142,7 @@ class ProjectClassIndex
         }
 
         $classDefinition->constantValues = $constants;
+        $classDefinition->constantExpressions = [];
 
         return $constants;
     }
@@ -128,7 +154,7 @@ class ProjectClassIndex
         return end($parts) ?: $className;
     }
 
-    private static function collectClasses(self $index, Node $node): void
+    private function collectClasses(Node $node, ?string $file): void
     {
         if ($node instanceof Class_) {
             $className = $node->name !== null ? $node->name->toString() : null;
@@ -156,32 +182,35 @@ class ProjectClassIndex
                             }
                         }
 
+                        // Body of the method is NOT stored here — it stays only inside the AST
+                        // that the caller is about to unset. MethodBodyCache re-parses on demand.
                         $classDefinition->methods[$statement->name->toString()] = new ProjectMethodDefinition(
                             $className,
                             $statement->name->toString(),
                             $parameterNames,
                             $parameterTypes,
-                            $statement->stmts ?? [],
+                            $file,
+                            $this->bodyCache,
                             $statement->returnType instanceof Node\Name ? $statement->returnType->toString() : null
                         );
                     }
                 }
 
-                $index->addClass($classDefinition);
+                $this->addClass($classDefinition);
             }
         }
 
         foreach ($node->getSubNodeNames() as $subNodeName) {
             $child = $node->$subNodeName;
             if ($child instanceof Node) {
-                self::collectClasses($index, $child);
+                $this->collectClasses($child, $file);
                 continue;
             }
 
             if (is_array($child)) {
                 foreach ($child as $item) {
                     if ($item instanceof Node) {
-                        self::collectClasses($index, $item);
+                        $this->collectClasses($item, $file);
                     }
                 }
             }
