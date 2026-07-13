@@ -17,6 +17,15 @@ use PhpParser\Node\Stmt\Return_;
 
 class MethodSummaryResolver
 {
+    /**
+     * Hard cap on translation candidates kept per method summary. Interprocedural resolution
+     * multiplies candidates by the number of call sites along a call chain (fan-out^depth),
+     * which is exponential and exhausts memory on real codebases. Above the cap the summary
+     * is truncated: the analysis stays sound for the kept candidates and degrades gracefully
+     * instead of running out of memory.
+     */
+    public const MAX_CANDIDATES_PER_METHOD = 200;
+
     private ProjectClassIndex $classIndex;
 
     private ExpressionSubstitutor $expressionSubstitutor;
@@ -62,7 +71,7 @@ class MethodSummaryResolver
         $candidates = $this->collectCandidatesFromStatements($definition->getStatements(), $className, [], []);
         unset($this->resolving[$cacheKey]);
 
-        return $this->cache[$cacheKey] = $candidates;
+        return $this->cache[$cacheKey] = $this->capCandidates($candidates);
     }
 
     /**
@@ -71,10 +80,21 @@ class MethodSummaryResolver
      */
     public function resolveCall(string $className, string $methodName, array $arguments, ?string $sourceClassName = null): array
     {
-        return array_merge(
+        return $this->capCandidates(array_merge(
             $this->applyNestedMethodSummary($className, $methodName, $arguments),
             $this->resolveReturnedObjectCandidatesForCall($className, $methodName, $arguments, $sourceClassName)
-        );
+        ));
+    }
+
+    /**
+     * @param MethodTranslationCandidate[] $candidates
+     * @return MethodTranslationCandidate[]
+     */
+    private function capCandidates(array $candidates): array
+    {
+        return count($candidates) > self::MAX_CANDIDATES_PER_METHOD
+            ? array_slice($candidates, 0, self::MAX_CANDIDATES_PER_METHOD)
+            : $candidates;
     }
 
     /**
@@ -172,6 +192,9 @@ class MethodSummaryResolver
         $candidates = [];
         foreach ($statements as $statement) {
             $candidates = array_merge($candidates, $this->collectCandidatesFromNode($statement, $className, $guards, $substitutions));
+            if (count($candidates) >= self::MAX_CANDIDATES_PER_METHOD) {
+                return $this->capCandidates($candidates);
+            }
             $this->collectLocalAssignmentSubstitution($statement, $substitutions);
         }
 
@@ -200,6 +223,10 @@ class MethodSummaryResolver
             if ($argumentValue instanceof Expr) {
                 $substitutions[$parameterName] = $argumentValue;
             }
+        }
+
+        if ($substitutions === []) {
+            return $nestedCandidates;
         }
 
         $resolved = [];
@@ -679,7 +706,19 @@ class MethodSummaryResolver
             return;
         }
 
-        $substitutions[$expression->var->name] = $this->expressionSubstitutor->substitute($expression->expr, $substitutions);
+        $variableName = $expression->var->name;
+        $substituted = $this->expressionSubstitutor->substitute($expression->expr, $substitutions);
+
+        // Self-referential assignments like `$text = $cond ? ltrim($text) : rtrim($text);` must
+        // not enter the substitution map: re-substituting such an expression inlines itself again
+        // on every ternary/if recursion level, which loops forever and exhausts memory. Treat the
+        // variable as unknown from this point on instead.
+        if ($this->expressionSubstitutor->containsVariable($substituted, $variableName)) {
+            unset($substitutions[$variableName]);
+            return;
+        }
+
+        $substitutions[$variableName] = $substituted;
     }
 
     /**

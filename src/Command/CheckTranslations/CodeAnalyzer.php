@@ -31,12 +31,16 @@ class CodeAnalyzer
         $bodyCache = new MethodBodyCache($parser);
         $classIndex = $this->buildClassIndex($parser, $bodyCache, $this->expandDirectories($this->directories));
 
+        // One resolver for the whole run: method summaries are file-independent, so sharing
+        // the cache avoids re-resolving the same call chains for every analyzed file.
+        $summaryResolver = new MethodSummaryResolver($classIndex);
+
         $result = [];
         foreach ($this->directories as $directory) {
             if (!is_dir($directory)) {
                 continue;
             }
-            $result[] = $this->analyzeDirectory($directory, $parser, $classIndex);
+            $result[] = $this->analyzeDirectory($directory, $parser, $classIndex, $summaryResolver);
         }
 
         if (function_exists('gc_collect_cycles')) {
@@ -84,7 +88,7 @@ class CodeAnalyzer
         return $classIndex;
     }
 
-    private function analyzeDirectory(string $directory, Parser $parser, ProjectClassIndex $classIndex): array
+    private function analyzeDirectory(string $directory, Parser $parser, ProjectClassIndex $classIndex, MethodSummaryResolver $summaryResolver): array
     {
         $translateCalls = [];
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
@@ -95,7 +99,7 @@ class CodeAnalyzer
             $extension = $file->getExtension();
             if ($extension === 'php') {
                 $code = (string) file_get_contents($file->getPathname());
-                $translateCalls[] = $this->analyzeCode($code, $file->getPathname(), $parser, $classIndex);
+                $translateCalls[] = $this->analyzeCode($code, $file->getPathname(), $parser, $classIndex, $summaryResolver);
                 unset($code);
             } elseif ($extension === 'latte') {
                 $translateCalls[] = $this->findInLatte($file);
@@ -110,7 +114,7 @@ class CodeAnalyzer
         return $this->latteTranslationAnalyzer->analyze($file);
     }
 
-    private function analyzeCode(string $code, string $filePath, Parser $parser, ProjectClassIndex $classIndex): array
+    private function analyzeCode(string $code, string $filePath, Parser $parser, ProjectClassIndex $classIndex, MethodSummaryResolver $summaryResolver): array
     {
         $result = [];
         try {
@@ -119,7 +123,7 @@ class CodeAnalyzer
                 return $result;
             }
             $traverser = new NodeTraverser();
-            $traverser->addVisitor(new ClassMethodArgVisitor($result, $filePath, $classIndex, new TranslationKeyExpressionResolver()));
+            $traverser->addVisitor(new ClassMethodArgVisitor($result, $filePath, $classIndex, new TranslationKeyExpressionResolver(), $summaryResolver));
             $traverser->traverse($ast);
             unset($ast, $traverser);
         } catch (Exception $e) {
