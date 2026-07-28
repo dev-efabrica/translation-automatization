@@ -120,6 +120,7 @@ class LatteTranslationAnalyzer
         $lines = explode("\n", $content);
         foreach ($lines as $idx => $line) {
             $stripped = $this->stripLatteExpressions($line);
+            $stripped = $this->neutralizeQuotedAngleBrackets($stripped);
             $count = preg_match_all('/>([^<>]+)</', $stripped, $matches);
             if ($count === false || $count === 0) {
                 continue;
@@ -163,6 +164,22 @@ class LatteTranslationAnalyzer
         }
 
         return $content;
+    }
+
+    /**
+     * Replaces `<` and `>` characters that appear inside quoted attribute values
+     * (e.g. Latte `n:if="$a->start_time < new \DateTime()"`) with spaces so they are
+     * not mistaken for HTML tag boundaries by the text extraction below.
+     */
+    private function neutralizeQuotedAngleBrackets(string $line): string
+    {
+        return preg_replace_callback(
+            '/"[^"]*"|\'[^\']*\'/',
+            static function (array $match): string {
+                return strtr($match[0], ['<' => ' ', '>' => ' ']);
+            },
+            $line
+        ) ?? $line;
     }
 
     private function stripLatteExpressions(string $line): string
