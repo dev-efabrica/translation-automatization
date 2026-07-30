@@ -89,6 +89,27 @@ class LatteHardcodedTextsTest extends TestCase
         $this->assertSame('Uncategorized settings', $results[0]['text']);
     }
 
+    public function testIgnoresAngleBracketsInsideAttributeExpressions(): void
+    {
+        $file = $this->createTemplate(
+            '<span n:if="$subscription->start_time < new \DateTime() && $subscription->end_time > new \DateTime()" class="label label-success">{_system.actual}</span>'
+        );
+
+        $results = (new LatteTranslationAnalyzer())->findHardcodedTexts(new SplFileInfo($file));
+
+        $this->assertSame([], $results);
+    }
+
+    public function testDetectsHardcodedTextWhenTagHasNIfAttribute(): void
+    {
+        $file = $this->createTemplate('<span n:if="$a->start_time < $b->end_time">Active</span>');
+
+        $results = (new LatteTranslationAnalyzer())->findHardcodedTexts(new SplFileInfo($file));
+
+        $this->assertCount(1, $results);
+        $this->assertSame('Active', $results[0]['text']);
+    }
+
     private function createTemplate(string $contents): string
     {
         $file = tempnam(sys_get_temp_dir(), 'latte_hardcoded_') . '.latte';
