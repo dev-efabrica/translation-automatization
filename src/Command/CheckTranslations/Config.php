@@ -123,7 +123,7 @@ $gridArgposMethods = [
         'checkboxList', // filter
         'multiValueComparator', // filter
         'published', // filter
-        'modal', // action title key, arg 1 is often an internal action slug like "export"
+        'modal', // ambiguous, resolved via RECEIVER_ARGPOS_METHODS; this position is only a fallback candidate when the receiver type is unknown
         'createModal', // action
         'create', // headerActions
         'delete', // groupAction
@@ -139,6 +139,7 @@ $gridAllowEmptyTranslation = [
     1 => array_merge([
         'addAction', // ublaboo, icon-only actions
         'addActionCallback', // ublaboo, icon-only actions
+        'custom', // columns with intentionally empty label
     ], $formAllowEmptyTranslation[1]),
 ];
 
@@ -220,6 +221,23 @@ return [
             3 => [
                 'dropdown',
             ],
+        ],
+    ],
+    // receiver typehint short name => lang_key position => methodName
+    // takes precedence over CLASS_ARGPOS_METHODS when the receiver variable has a known typehint
+    'RECEIVER_ARGPOS_METHODS' => [
+        // efabrica/grid: modal() signature differs per action collection
+        'ItemActionCollection' => [
+            1 => ['modal'], // modal(key, label, icon)
+        ],
+        'RowActionCollection' => [
+            1 => ['modal'], // extends ItemActionCollection
+        ],
+        'TileActionCollection' => [
+            1 => ['modal'], // modal(key, label, icon)
+        ],
+        'HeaderActionCollection' => [
+            2 => ['modal'], // modal(modalFactory, key, label, icon)
         ],
     ],
     'ARGPOS_CLASSES' => [

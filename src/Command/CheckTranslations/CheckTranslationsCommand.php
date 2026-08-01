@@ -62,6 +62,26 @@ class CheckTranslationsCommand extends Command
         $this->processTranslationFindConfig($exclude, $include);
         $results = (new LegacyCodeAnalyzer($dirs, $this->translationFindConfig))->analyzeDirectories();
         foreach ($results as $call) {
+            $candidates = $call['keyCandidates'] ?? [];
+            if ($candidates !== []) {
+                if ($dictionaries === []) {
+                    $errors[] = 'No dictionaries found.';
+                    break;
+                }
+                foreach ($dictionaries as $lang => $dictionary) {
+                    $langText = !$onlyOneLang ? ' for language "' . $lang . '"' : '';
+                    if (!$this->dictionaryHasAnyKey($dictionary, $candidates)) {
+                        $errors[] = sprintf(
+                            'Missing translation for any of keys "%s" ' . $langText . 'in file: %s:%s call: "%s"',
+                            implode('", "', $candidates),
+                            $call['file'],
+                            $call['line'],
+                            $call['call'] ?? ''
+                        );
+                    }
+                }
+                continue;
+            }
             $key = $call['key'];
             if ($key === 'dynamic_value' || !is_string($key)) {
                 continue;
@@ -117,6 +137,17 @@ class CheckTranslationsCommand extends Command
         $output->writeln('<comment>' . count($errors) . ' errors found</comment>');
 
         return count($errors);
+    }
+
+    private function dictionaryHasAnyKey(array $dictionary, array $candidates): bool
+    {
+        foreach ($candidates as $candidate) {
+            if (isset($dictionary[$candidate])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function processTranslationFindConfig(array $exclude, array $include): void

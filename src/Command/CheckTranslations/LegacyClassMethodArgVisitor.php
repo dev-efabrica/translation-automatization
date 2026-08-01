@@ -4,9 +4,11 @@ namespace Efabrica\TranslationsAutomatization\Command\CheckTranslations;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\Array_;
+use PhpParser\Node\Expr\ArrowFunction;
 use PhpParser\Node\Expr\Closure;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
+use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Return_;
@@ -26,6 +28,9 @@ class LegacyClassMethodArgVisitor extends NodeVisitorAbstract
 
     private array $config;
 
+    /** @var array<int, array<string, string>> */
+    private array $typeScopes = [[]];
+
     public function __construct(array &$keys, string $filePath, array $config)
     {
         $this->keys = &$keys;
@@ -37,6 +42,7 @@ class LegacyClassMethodArgVisitor extends NodeVisitorAbstract
     public function enterNode(Node $node)
     {
         $this->prepareUseClasses($node);
+        $this->enterTypeScope($node);
         if ($node instanceof New_ && isset($node->class) && in_array($node->class->name ?? null, $this->classArgposClassesMap, true)) {
             $className = $node->class->name;
             $argIndex = array_search($className, $this->classArgposClassesMap, true);
@@ -48,18 +54,163 @@ class LegacyClassMethodArgVisitor extends NodeVisitorAbstract
         }
 
         if ($node instanceof MethodCall && $node->name instanceof Identifier) {
-            $methodName = $node->name->name;
-            foreach ($this->config['CLASS_ARGPOS_METHODS'] ?? [] as $classNamePart => $argposMethods) {
-                if ($classNamePart !== 'ALL' && (strpos($this->className, $classNamePart) === false || substr($this->className, -strlen($classNamePart)) !== $classNamePart)) {
-                    continue;
+            $this->extractFromMethodCall($node, $node->name->name);
+        }
+    }
+
+    public function leaveNode(Node $node)
+    {
+        if ($node instanceof FunctionLike) {
+            array_pop($this->typeScopes);
+        }
+    }
+
+    private function extractFromMethodCall(MethodCall $node, string $methodName): void
+    {
+        $receiverArgposMethods = $this->config['RECEIVER_ARGPOS_METHODS'] ?? [];
+        $receiverType = $this->resolveReceiverType($node);
+
+        if ($receiverType !== null && isset($receiverArgposMethods[$receiverType])) {
+            $matched = false;
+            foreach ($receiverArgposMethods[$receiverType] as $argIndex => $methods) {
+                if (in_array($methodName, $methods, true)) {
+                    $this->extractKeyFromArgument($node, (int) $argIndex, $receiverType);
+                    $matched = true;
                 }
-                foreach ($argposMethods as $argIndex => $methods) {
-                    if (in_array($methodName, $methods, true)) {
-                        $this->extractKeyFromArgument($node, (int) $argIndex, $classNamePart);
+            }
+            if ($matched) {
+                return;
+            }
+        }
+
+        $receiverPositions = $this->getReceiverPositions($methodName, $receiverArgposMethods);
+        if ($receiverPositions !== [] && $receiverType !== null) {
+            // known receiver type uses a different overload of this method
+            return;
+        }
+
+        foreach ($this->config['CLASS_ARGPOS_METHODS'] ?? [] as $classNamePart => $argposMethods) {
+            if ($classNamePart !== 'ALL' && (strpos($this->className, $classNamePart) === false || substr($this->className, -strlen($classNamePart)) !== $classNamePart)) {
+                continue;
+            }
+            foreach ($argposMethods as $argIndex => $methods) {
+                if (in_array($methodName, $methods, true)) {
+                    if ($receiverPositions !== []) {
+                        $candidatePositions = array_values(array_unique(array_merge($receiverPositions, [(int) $argIndex])));
+                        $this->extractCandidateKeys($node, $methodName, $candidatePositions);
+                        return;
                     }
+                    $this->extractKeyFromArgument($node, (int) $argIndex, $classNamePart);
                 }
             }
         }
+    }
+
+    private function enterTypeScope(Node $node): void
+    {
+        if (!$node instanceof FunctionLike) {
+            return;
+        }
+
+        $scope = [];
+        if ($node instanceof ArrowFunction) {
+            $scope = $this->getCurrentTypeScope();
+        } elseif ($node instanceof Closure) {
+            $currentScope = $this->getCurrentTypeScope();
+            foreach ($node->uses as $use) {
+                if ($use->var instanceof Node\Expr\Variable && is_string($use->var->name) && isset($currentScope[$use->var->name])) {
+                    $scope[$use->var->name] = $currentScope[$use->var->name];
+                }
+            }
+        }
+
+        foreach ($node->getParams() as $param) {
+            if (!$param->var instanceof Node\Expr\Variable || !is_string($param->var->name)) {
+                continue;
+            }
+            $type = $this->resolveShortTypeName($param->type);
+            if ($type !== null) {
+                $scope[$param->var->name] = $type;
+            }
+        }
+
+        $this->typeScopes[] = $scope;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function getCurrentTypeScope(): array
+    {
+        return $this->typeScopes[array_key_last($this->typeScopes)] ?? [];
+    }
+
+    private function resolveShortTypeName(?Node $type): ?string
+    {
+        if ($type instanceof Node\NullableType) {
+            $type = $type->type;
+        }
+
+        return $type instanceof Node\Name ? $type->getLast() : null;
+    }
+
+    private function resolveReceiverType(MethodCall $node): ?string
+    {
+        if ($node->var instanceof Node\Expr\Variable && is_string($node->var->name)) {
+            return $this->getCurrentTypeScope()[$node->var->name] ?? null;
+        }
+
+        return null;
+    }
+
+    /**
+     * @return int[]
+     */
+    private function getReceiverPositions(string $methodName, array $receiverArgposMethods): array
+    {
+        $positions = [];
+        foreach ($receiverArgposMethods as $argposMethods) {
+            foreach ($argposMethods as $argIndex => $methods) {
+                if (in_array($methodName, $methods, true)) {
+                    $positions[] = (int) $argIndex;
+                }
+            }
+        }
+
+        return array_values(array_unique($positions));
+    }
+
+    /**
+     * @param int[] $argIndexes
+     */
+    private function extractCandidateKeys(MethodCall $node, string $methodName, array $argIndexes): void
+    {
+        $args = $node->args;
+        $candidates = [];
+        foreach ($argIndexes as $argIndex) {
+            if (isset($args[$argIndex]) && $args[$argIndex]->value instanceof String_) {
+                $candidates[] = $args[$argIndex]->value->value;
+            }
+        }
+
+        $candidates = array_values(array_unique($candidates));
+        if ($candidates === []) {
+            return;
+        }
+
+        if (count($candidates) === 1) {
+            $this->addKey($node->getStartLine(), $methodName, $candidates[0]);
+            return;
+        }
+
+        $this->keys[] = [
+            'file' => $this->filePath,
+            'line' => $node->getStartLine(),
+            'call' => $methodName,
+            'key' => null,
+            'arg' => null,
+            'keyCandidates' => $candidates,
+        ];
     }
 
     private function prepareUseClasses(Node $node): void
