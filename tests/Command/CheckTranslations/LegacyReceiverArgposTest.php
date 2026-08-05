@@ -130,6 +130,45 @@ PHP);
         $this->assertSame('Environments', $keys[0]['key']);
     }
 
+    public function testActionCreatorCustomKeyIsResolvedViaCandidates(): void
+    {
+        $keys = $this->analyze('ApiAdminPresenter.php', <<<'PHP'
+<?php
+class ApiAdminPresenter
+{
+    public function renderDefault(): void
+    {
+        $this->headerActionCreator->custom('skeleton.app.api.open_api_schema_in_swagger', 'api', $this->link('ApiAdmin:OpenApiSchema'));
+    }
+}
+PHP);
+
+        $this->assertCount(1, $keys);
+        $this->assertNull($keys[0]['key']);
+        $this->assertSame(
+            ['skeleton.app.api.open_api_schema_in_swagger', 'api'],
+            $keys[0]['keyCandidates']
+        );
+    }
+
+    public function testActionCreatorCustomOnTypedReceiverUsesPositionZero(): void
+    {
+        $keys = $this->analyze('SomePresenter.php', <<<'PHP'
+<?php
+class SomePresenter
+{
+    public function build(HeaderActionCreator $creator): void
+    {
+        $creator->custom('skeleton.app.api.title', 'api', $this->link('X:default'));
+    }
+}
+PHP);
+
+        $this->assertCount(1, $keys);
+        $this->assertSame('skeleton.app.api.title', $keys[0]['key']);
+        $this->assertSame('custom', $keys[0]['call']);
+    }
+
     /**
      * @return array<int, array<string, mixed>>
      */
