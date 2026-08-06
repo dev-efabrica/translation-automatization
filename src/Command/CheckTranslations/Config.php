@@ -32,7 +32,7 @@ $formArgposMethods = [
         'addPassword',
         'addToggleSwitch',
         'addRte',
-        'custom',
+        'custom', // ambiguous: grid/form column key at pos 1, action creator key at pos 0 (RECEIVER_ARGPOS_METHODS); this position is only a fallback candidate when the receiver type is unknown
         'addRule',
         'addChoozeAbTestingCondition',
         'addChoozeCatalogue',
@@ -143,6 +143,19 @@ $gridAllowEmptyTranslation = [
     ], $formAllowEmptyTranslation[1]),
 ];
 
+// efabrica/skeleton-core action creators: custom(text, icon, link) — translation key at pos 0
+$actionCreatorReceiverArgpos = [
+    0 => ['custom'],
+];
+
+// efabrica/grid column collections: custom(key, label, renderer) — translation key (label) at pos 1
+$columnCollectionReceiverArgpos = [
+    1 => ['custom'],
+];
+$columnCollectionAllowEmptyTranslation = [
+    1 => ['custom'], // columns with intentionally empty label
+];
+
 return [
     'CLASS_ARGPOS_METHODS' => [
         'ALL' => [
@@ -222,6 +235,11 @@ return [
                 'dropdown',
             ],
         ],
+        // empty custom-column label allowance when the receiver type is known (mirrors the Grid class-level rule)
+        'ColumnCollection' => $columnCollectionAllowEmptyTranslation,
+        'RowColumnCollection' => $columnCollectionAllowEmptyTranslation,
+        'TileColumnCollection' => $columnCollectionAllowEmptyTranslation,
+        'TreeColumnCollection' => $columnCollectionAllowEmptyTranslation,
     ],
     // receiver typehint short name => lang_key position => methodName
     // takes precedence over CLASS_ARGPOS_METHODS when the receiver variable has a known typehint
@@ -239,6 +257,16 @@ return [
         'HeaderActionCollection' => [
             2 => ['modal'], // modal(modalFactory, key, label, icon)
         ],
+        // efabrica/skeleton-core action creators: custom key at pos 0, not the grid/form pos 1
+        'AbstractActionCreator' => $actionCreatorReceiverArgpos,
+        'ActionCreator' => $actionCreatorReceiverArgpos,
+        'HeaderActionCreator' => $actionCreatorReceiverArgpos,
+        'TreeActionCreator' => $actionCreatorReceiverArgpos,
+        // efabrica/grid column collections keep custom key at pos 1 even though custom is now receiver-sensitive
+        'ColumnCollection' => $columnCollectionReceiverArgpos,
+        'RowColumnCollection' => $columnCollectionReceiverArgpos,
+        'TileColumnCollection' => $columnCollectionReceiverArgpos,
+        'TreeColumnCollection' => $columnCollectionReceiverArgpos,
     ],
     'ARGPOS_CLASSES' => [
         0 => [
