@@ -90,8 +90,8 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
                 strtolower($node->name->toString()) === 'translate' &&
                 $firstArg !== null
             ) {
-                $candidate = new MethodTranslationCandidate($firstArg->value, $node->name->toString(), $this->extractPluralKey($node), [], $this->className);
-                $this->extractKeyFromCandidate($candidate, $firstArg->getStartLine(), $this->printExpression($firstArg->value));
+                $candidate = new MethodTranslationCandidate($firstArg->value, $node->name->toString(), $this->extractParameterNames($node), [], $this->className);
+                $this->extractKeyFromCandidate($candidate, $node->getStartLine(), $this->printExpression($firstArg->value));
                 return;
             }
 
@@ -159,26 +159,26 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
         $resolver = $this->getExpressionResolver($candidate->declaringClassName ?? $this->className);
         $scope = $this->getCurrentScope();
         $result = $resolver->resolve($candidate->expression, $scope);
-        if ($candidate->call === 'translate' && $candidate->pluralKey !== null && !$this->containsVariablePlaceholder($candidate->pluralKey, $result)) {
-            // keep current plural behavior only for direct translation keys
-        }
 
         $keyPattern = null;
         if (!$result->isResolved()) {
             $keyPattern = $resolver->derivePattern($candidate->expression, $scope, $this->getCurrentExpressionScope());
         }
 
-        $this->addResolvedResult($result, $line, $candidate->call, $sourceExpression, $candidate->pluralKey, $keyPattern);
+        $this->addResolvedResult($result, $line, $candidate->call, $sourceExpression, $candidate->parameterNames, $keyPattern);
     }
 
-    private function addResolvedResult(ExpressionEvaluationResult $result, int $line, string $call, string $sourceExpression, ?string $arg, ?string $keyPattern = null): void
+    /**
+     * @param string[]|null $args
+     */
+    private function addResolvedResult(ExpressionEvaluationResult $result, int $line, string $call, string $sourceExpression, ?array $args, ?string $keyPattern = null): void
     {
         if (!$result->isResolved()) {
             if (in_array('method_parameter', $result->getStrategies(), true)) {
                 return;
             }
 
-            $this->addKey($line, $call, [], $arg, true, false, $sourceExpression, $result->getStrategies(), $result->getVariablesUsed(), $keyPattern);
+            $this->addKey($line, $call, [], $args, true, false, $sourceExpression, $result->getStrategies(), $result->getVariablesUsed(), $keyPattern);
             return;
         }
 
@@ -187,18 +187,21 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
                 continue;
             }
 
-            $this->addKey($line, $call, [$key], $arg, $result->isDynamic(), true, $sourceExpression, $result->getStrategies(), $result->getVariablesUsed());
+            $this->addKey($line, $call, [$key], $args, $result->isDynamic(), true, $sourceExpression, $result->getStrategies(), $result->getVariablesUsed());
         }
     }
 
-    private function addKey(int $line, string $call, array $resolvedKeys, ?string $arg = null, bool $isDynamic = false, bool $isResolved = true, ?string $sourceExpression = null, array $resolutionStrategies = [], array $variablesUsed = [], ?string $keyPattern = null): void
+    /**
+     * @param string[]|null $args
+     */
+    private function addKey(int $line, string $call, array $resolvedKeys, ?array $args = null, bool $isDynamic = false, bool $isResolved = true, ?string $sourceExpression = null, array $resolutionStrategies = [], array $variablesUsed = [], ?string $keyPattern = null): void
     {
         $this->keys[] = [
             'file' => $this->filePath,
             'line' => $line,
             'call' => $call,
             'resolvedKeys' => $resolvedKeys,
-            'arg' => $arg,
+            'args' => $args,
             'isDynamic' => $isDynamic,
             'isResolved' => $isResolved,
             'sourceExpression' => $sourceExpression,
@@ -431,19 +434,38 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
         return $className;
     }
 
-    private function extractPluralKey(MethodCall $node): ?string
+    /**
+     * @return string[]|null null = statically unknown, [] = no parameters
+     */
+    private function extractParameterNames(MethodCall $node): ?array
     {
-        $arg = $this->findArgumentBySelector($node->args, 1);
-        if ($arg === null || !$arg->value instanceof Node\Expr\Array_) {
+        $paramsArg = $this->findArgumentBySelector($node->args, 1);
+        if ($paramsArg === null) {
+            return [];
+        }
+
+        $value = $paramsArg->value;
+        if ($value instanceof Node\Scalar\LNumber) {
+            $paramsArg = $this->findArgumentBySelector($node->args, 2);
+            if ($paramsArg === null) {
+                return ['count'];
+            }
+            $value = $paramsArg->value;
+        }
+
+        if (!$value instanceof Node\Expr\Array_) {
             return null;
         }
 
-        $firstItem = $arg->value->items[0] ?? null;
-        if ($firstItem === null || !$firstItem->key instanceof String_) {
-            return null;
+        $names = [];
+        foreach ($value->items as $item) {
+            if ($item === null || $item->unpack || !$item->key instanceof String_) {
+                return null;
+            }
+            $names[] = $item->key->value;
         }
 
-        return $firstItem->key->value;
+        return $names;
     }
 
     private function allowsEmptyTranslation(string $call, string $key): bool
@@ -453,11 +475,6 @@ class ClassMethodArgVisitor extends NodeVisitorAbstract
         }
 
         return in_array($call, ['addSelect', 'addTextArea', 'dropdown'], true);
-    }
-
-    private function containsVariablePlaceholder(string $pluralKey, ExpressionEvaluationResult $result): bool
-    {
-        return $result->getValues() !== [] && $pluralKey !== '';
     }
 
     private function mergeIteratedValues(ExpressionEvaluationResult $iteratedResult): ?ExpressionEvaluationResult

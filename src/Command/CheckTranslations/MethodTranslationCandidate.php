@@ -8,7 +8,8 @@ class MethodTranslationCandidate
 {
     public Expr $expression;
 
-    public ?string $pluralKey;
+    /** @var string[]|null null = statically unknown */
+    public ?array $parameterNames;
 
     public string $call;
 
@@ -18,12 +19,13 @@ class MethodTranslationCandidate
     public array $guards;
 
     /**
+     * @param string[]|null $parameterNames
      * @param MethodTranslationGuard[] $guards
      */
-    public function __construct(Expr $expression, string $call, ?string $pluralKey = null, array $guards = [], ?string $declaringClassName = null)
+    public function __construct(Expr $expression, string $call, ?array $parameterNames = null, array $guards = [], ?string $declaringClassName = null)
     {
         $this->expression = $expression;
-        $this->pluralKey = $pluralKey;
+        $this->parameterNames = $parameterNames;
         $this->call = $call;
         $this->guards = $guards;
         $this->declaringClassName = $declaringClassName;
