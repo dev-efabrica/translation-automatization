@@ -120,15 +120,9 @@ class MethodSummaryResolver
             $secondArgumentValue = $this->getArgumentValue($node->args, 1);
             if (strtolower($methodName) === 'translate' && $firstArgumentValue instanceof Expr) {
                 $resolvedExpression = $this->expressionSubstitutor->substitute($firstArgumentValue, $substitutions);
-                $pluralKey = null;
-                if ($secondArgumentValue instanceof Expr\Array_) {
-                    $firstItem = $secondArgumentValue->items[0] ?? null;
-                    if ($firstItem !== null && $firstItem->key instanceof Node\Scalar\String_) {
-                        $pluralKey = $firstItem->key->value;
-                    }
-                }
+                $parameterNames = $this->extractParameterNames($node->args);
 
-                $candidates[] = new MethodTranslationCandidate($resolvedExpression, $methodName, $pluralKey, $this->substituteGuards($guards, $substitutions), $className);
+                $candidates[] = new MethodTranslationCandidate($resolvedExpression, $methodName, $parameterNames, $this->substituteGuards($guards, $substitutions), $className);
             } else {
                 $calleeClass = $this->resolveCalleeClassFromMethodCall($node, $className);
                 if ($calleeClass !== null) {
@@ -143,15 +137,9 @@ class MethodSummaryResolver
             $secondArgumentValue = $this->getArgumentValue($node->args, 1);
             if (strtolower($methodName) === 'translate' && $firstArgumentValue instanceof Expr) {
                 $resolvedExpression = $this->expressionSubstitutor->substitute($firstArgumentValue, $substitutions);
-                $pluralKey = null;
-                if ($secondArgumentValue instanceof Expr\Array_) {
-                    $firstItem = $secondArgumentValue->items[0] ?? null;
-                    if ($firstItem !== null && $firstItem->key instanceof Node\Scalar\String_) {
-                        $pluralKey = $firstItem->key->value;
-                    }
-                }
+                $parameterNames = $this->extractParameterNames($node->args);
 
-                $candidates[] = new MethodTranslationCandidate($resolvedExpression, $methodName, $pluralKey, $this->substituteGuards($guards, $substitutions), $className);
+                $candidates[] = new MethodTranslationCandidate($resolvedExpression, $methodName, $parameterNames, $this->substituteGuards($guards, $substitutions), $className);
             } else {
                 $calleeClass = $this->resolveCalleeClassFromStaticCall($node, $className);
                 if ($calleeClass !== null) {
@@ -242,7 +230,7 @@ class MethodSummaryResolver
             $resolved[] = new MethodTranslationCandidate(
                 $this->expressionSubstitutor->substitute($candidate->expression, $substitutions),
                 $candidate->call,
-                $candidate->pluralKey,
+                $candidate->parameterNames,
                 $resolvedGuards,
                 $candidate->declaringClassName
             );
@@ -678,6 +666,39 @@ class MethodSummaryResolver
         }
 
         return $resolvedArguments;
+    }
+
+    /**
+     * @param array<int, Arg|Node\VariadicPlaceholder> $arguments
+     * @return string[]|null null = statically unknown, [] = no parameters
+     */
+    private function extractParameterNames(array $arguments): ?array
+    {
+        $value = $this->getArgumentValue($arguments, 1);
+        if ($value === null) {
+            return isset($arguments[1]) ? null : [];
+        }
+
+        if ($value instanceof Node\Scalar\LNumber) {
+            $value = $this->getArgumentValue($arguments, 2);
+            if ($value === null) {
+                return isset($arguments[2]) ? null : ['count'];
+            }
+        }
+
+        if (!$value instanceof Expr\Array_) {
+            return null;
+        }
+
+        $names = [];
+        foreach ($value->items as $item) {
+            if ($item === null || $item->unpack || !$item->key instanceof Node\Scalar\String_) {
+                return null;
+            }
+            $names[] = $item->key->value;
+        }
+
+        return $names;
     }
 
     /**

@@ -70,6 +70,7 @@ class CheckTranslationsDeepCommand extends Command
             'resolvedDynamicPart' => 0,
             'unresolvedDynamic' => 0,
             'ignoredByCode' => 0,
+            'parameterMismatches' => 0,
             'unresolvedLattePhpVariable' => 0,
             'unresolvedStrategies' => [],
             'unresolvedStrategyExamples' => [],
@@ -81,7 +82,7 @@ class CheckTranslationsDeepCommand extends Command
             'resolvedDynamicPartExamples' => [],
         ];
         foreach ($results as $call) {
-            if (($call['isResolved'] ?? true) === false && $this->isIgnoredByCode($call)) {
+            if ($this->isIgnoredByCode($call)) {
                 $statistics['ignoredByCode']++;
                 continue;
             }
@@ -137,28 +138,39 @@ class CheckTranslationsDeepCommand extends Command
                         );
                     } else {
                         $dictionaryTranslate = $dictionary[$key];
-                        $pluralKey = $call['arg'] ?? null;
-                        $pluralKeyInFile = $pluralKey ? '%' . $pluralKey . '%' : null;
-                        if ($pluralKey && strpos($dictionaryTranslate, $pluralKeyInFile) === false) {
-                            $errors[] = sprintf(
-                                'Translation key "%s" ' . $langText . 'in file: %s:%s call: "%s" has bad plural key: %s for translation: "%s"',
-                                $key,
-                                $call['file'],
-                                $call['line'],
-                                $call['call'],
-                                $pluralKeyInFile,
-                                $dictionaryTranslate
-                            );
-                        }
-                        if ($pluralKey === null && preg_match('/.*%.+%.*/', $dictionaryTranslate) === false) {
-                            $errors[] = sprintf(
-                                'Translation key "%s" ' . $langText . 'in file: %s:%s call: "%s" has missing plural key for translation: "%s"',
-                                $key,
-                                $call['file'],
-                                $call['line'],
-                                $call['call'],
-                                $dictionaryTranslate
-                            );
+                        $parameterNames = $call['args'] ?? null;
+                        if (is_array($parameterNames)) {
+                            $placeholders = $this->extractPlaceholders($dictionaryTranslate);
+                            foreach ($parameterNames as $parameterName) {
+                                if ($parameterName === 'count' || in_array($parameterName, $placeholders, true)) {
+                                    continue;
+                                }
+                                $statistics['parameterMismatches']++;
+                                $errors[] = sprintf(
+                                    'Translation key "%s" ' . $langText . 'in file: %s:%s call: "%s" parameter %%%s%% is not used in translation: "%s"',
+                                    $key,
+                                    $call['file'],
+                                    $call['line'],
+                                    $call['call'],
+                                    $parameterName,
+                                    $dictionaryTranslate
+                                );
+                            }
+                            foreach ($placeholders as $placeholder) {
+                                if ($placeholder === 'count' || in_array($placeholder, $parameterNames, true)) {
+                                    continue;
+                                }
+                                $statistics['parameterMismatches']++;
+                                $errors[] = sprintf(
+                                    'Translation key "%s" ' . $langText . 'in file: %s:%s call: "%s" translation expects parameter %%%s%% which is not passed: "%s"',
+                                    $key,
+                                    $call['file'],
+                                    $call['line'],
+                                    $call['call'],
+                                    $placeholder,
+                                    $dictionaryTranslate
+                                );
+                            }
                         }
                     }
                 }
@@ -318,6 +330,7 @@ class CheckTranslationsDeepCommand extends Command
         $output->writeln(sprintf('  Resolved dynamic - part key  %6d', $resolvedDynamicPart), OutputInterface::VERBOSITY_VERBOSE);
         $output->writeln(sprintf('  Unresolved dynamic           %6d', $statistics['unresolvedDynamic']), OutputInterface::VERBOSITY_VERBOSE);
         $output->writeln(sprintf('  Ignored by code              %6d', $statistics['ignoredByCode'] ?? 0), OutputInterface::VERBOSITY_VERBOSE);
+        $output->writeln(sprintf('  Parameter mismatches         %6d', $statistics['parameterMismatches'] ?? 0), OutputInterface::VERBOSITY_VERBOSE);
         $output->writeln(sprintf('  Unresolved latte PHP variable - ignored %6d', $statistics['unresolvedLattePhpVariable'] ?? 0), OutputInterface::VERBOSITY_VERBOSE);
         $output->writeln(sprintf('  Dynamic success rate         %6.1f%%   %s', $dynamicResolutionRate, $this->renderPercentBar($dynamicResolutionRate)), OutputInterface::VERBOSITY_VERBOSE);
 
@@ -504,15 +517,33 @@ class CheckTranslationsDeepCommand extends Command
         return preg_match('/^\$[A-Za-z_][A-Za-z0-9_]*$/', trim($expression)) === 1;
     }
 
+    /**
+     * @return string[]
+     */
+    private function extractPlaceholders(string $translation): array
+    {
+        if (preg_match_all('/%([a-zA-Z_][a-zA-Z0-9_]*)%/', $translation, $matches) === 0) {
+            return [];
+        }
+
+        return array_values(array_unique($matches[1]));
+    }
+
     private function isIgnoredByCode(array $call): bool
     {
         $file = $call['file'] ?? null;
         $line = $call['line'] ?? null;
-        if (!is_string($file) || !is_int($line) || $line <= 1) {
+        if (!is_string($file) || !is_int($line) || $line < 1) {
             return false;
         }
 
         $lines = $this->getFileLines($file);
+        if ($this->lineHasIgnoreMarker($lines[$line - 1] ?? null)) {
+            return true;
+        }
+        if ($line <= 1) {
+            return false;
+        }
         return $this->lineHasIgnoreMarker($lines[$line - 2] ?? null);
     }
 
